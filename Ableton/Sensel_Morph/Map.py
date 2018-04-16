@@ -24,6 +24,7 @@ MORPH_SLIDERS = [17, 18]
 
 MORPH_DIALS = [index for index in range(9, 17)]
 
+MORPH_SEND_PRESSURE = [19, 20]
 
 CHANNELS = ['Ch. 2', 'Ch. 3', 'Ch. 4', 'Ch. 5', 'Ch. 6', 'Ch. 7', 'Ch. 8', 'Ch. 9', 'Ch. 10', 'Ch. 11', 'Ch. 12', 'Ch. 13', 'Ch. 14']
 

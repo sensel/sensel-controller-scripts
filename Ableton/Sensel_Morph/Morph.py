@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 from functools import partial
 from itertools import izip, izip_longest, product
 
-from ableton.v2.base import slicer, to_slice, liveobj_changed, group, flatten, listens
+from ableton.v2.base import slicer, to_slice, liveobj_changed, group, flatten, listens, liveobj_valid
 from ableton.v2.control_surface.component import Component
 from ableton.v2.control_surface.compound_component import CompoundComponent
 from ableton.v2.control_surface.elements.button import ButtonElement
@@ -122,6 +122,37 @@ class MorphDeviceComponent(DeviceComponent):
 	
 
 
+class MorphDrumGroup(DrumGroupComponent):
+
+
+	def set_bank_up_button(self, button):
+		self._bank_up_button_value.subject = button
+	
+
+	def set_bank_down_button(self, button):
+		self._bank_down_button_value.subject = button
+	
+
+	@listens('value')
+	def _bank_up_button_value(self, value):
+		debug('_bank_up_button_value:', value)
+		debug(self._drum_group_device.view.drum_pads_scroll_position if liveobj_valid(self._drum_group_device) else None)
+		if value:
+			if 0 <= self.position <= 27 and liveobj_valid(self._drum_group_device):
+				debug('here')
+				self._drum_group_device.view.drum_pads_scroll_position = (self.position + 1)
+	
+
+	@listens('value')
+	def _bank_down_button_value(self, value):
+		debug('_bank_down_button_value:', value)
+		debug(self._drum_group_device.view.drum_pads_scroll_position if liveobj_valid(self._drum_group_device) else None)
+		if value:
+			if 1 <= self.position <= 28 and liveobj_valid(self._drum_group_device):
+				debug('here')
+				self._drum_group_device.view.drum_pads_scroll_position = (self.position - 1)
+	
+
 class MorphKeysGroup(PlayableComponent):
 
 
@@ -150,14 +181,16 @@ class Morph(ControlSurface):
 			self._setup_autoarm()
 			self._setup_device()
 			self._setup_session()
+			self._setup_mixer()
 			self._setup_transport()
 			self._setup_viewcontrol()
 			self._setup_recorder()
 			self._setup_translations()
 			self._setup_modes() 
+		self._on_device_changed.subject = self._device_provider
 		self.log_message('<<<<<<<<<<<<<<<<<<<<<<<<< Morph log opened >>>>>>>>>>>>>>>>>>>>>>>>>')
 		self.show_message('Morph Control Surface Loaded')
-		debug('device:', self._device._get_device())
+		#debug('device:', self._device._get_device())
 	
 
 
@@ -173,12 +206,15 @@ class Morph(ControlSurface):
 		self._key = [MorphButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = KEY_CHANNEL, identifier = MORPH_KEYS[index], name = 'Key_' + str(index), skin = self._skin, resource_type = resource) for index in range(13)]
 		self._dials = [MorphEncoderElement(msg_type = MIDI_CC_TYPE, channel = CHANNEL, identifier = MORPH_DIALS[index], map_mode = Live.MidiMap.MapMode.absolute, name = 'Dial_' + str(index), resource_type = resource) for index in range(8)]
 		self._slider = [MorphEncoderElement(msg_type = MIDI_CC_TYPE, channel = CHANNEL, identifier = MORPH_SLIDERS[index], map_mode = Live.MidiMap.MapMode.absolute, name = 'Slider_' + str(index), resource_type = resource) for index in range(2)]
+		self._send_pressure = [MorphEncoderElement(msg_type = MIDI_CC_TYPE, channel = CHANNEL, identifier = MORPH_SEND_PRESSURE[index], map_mode = Live.MidiMap.MapMode.absolute, name = 'SendPressure_' + str(index), resource_type = resource) for index in range(2)]
 
 		self._pad_matrix = ButtonMatrixElement(name = 'PadMatrix', rows = self._pad)
 		self._dial_matrix = ButtonMatrixElement(name = 'DialMatrix', rows = [self._dials])
 		self._button_matrix = ButtonMatrixElement(name = 'ButtonMatrix', rows = [self._button])
 		self._key_matrix = ButtonMatrixElement(name = 'KeyMatrix', rows = [self._key])
+		self._key_shift_matrix = ButtonMatrixElement(name = 'KeyShiftMatrix', rows = [self._key[2:10]])
 		self._slider_matrix = ButtonMatrixElement(name = 'SliderMatrix', rows = [self._slider])
+		self._send_pressure_matrix = ButtonMatrixElement(name = 'SendAMatrix', rows = [self._send_pressure])
 	
 
 	def _setup_background(self):
@@ -188,14 +224,16 @@ class Morph(ControlSurface):
 	
 
 	def _setup_drum_group(self):
-		self._drum_group = DrumGroupComponent(set_pad_translations = self.set_pad_translations, translation_channel = DRUM_TRANSLATION_CHANNEL)
-		self._drum_group.layer = Layer(matrix = self._pad_matrix)
+		self._drum_group = MorphDrumGroup(set_pad_translations = self.set_pad_translations, translation_channel = DRUM_TRANSLATION_CHANNEL)
+		self._drum_group.main_layer = AddLayerMode(self._drum_group, Layer(matrix = self._pad_matrix))
+		self._drum_group.nav_layer = AddLayerMode(self._drum_group, Layer(bank_up_button = self._key[2], bank_down_button = self._key[0]))
 		self._drum_group.set_enabled(False)
 	
 
 	def _setup_keys_group(self):
 		self._keys_group = MorphKeysGroup()
-		self._keys_group.layer = Layer(matrix = self._key_matrix)
+		self._keys_group.main_layer = AddLayerMode(self._keys_group, Layer(matrix = self._key_matrix))
+		self._keys_group.shift_layer = AddLayerMode(self._keys_group, Layer(matrix = self._key_shift_matrix))
 		self._keys_group.set_enabled(False)
 	
 
@@ -236,6 +274,11 @@ class Morph(ControlSurface):
 		self._session_navigation.set_enabled(False)
 	
 
+	def _setup_mixer(self):
+		self._mixer = MixerComponent(tracks_provider = self._session_ring, track_assigner = simple_track_assigner, auto_name = True, invert_mute_feedback = False)
+		self._mixer._selected_strip.layer = Layer(send_controls = self._send_pressure_matrix)
+	
+
 	def _setup_viewcontrol(self):
 		self._viewcontrol = ViewControlComponent()
 		self._viewcontrol.layer = Layer(prev_track_button = self._button[0], next_track_button = self._button[1])
@@ -259,13 +302,22 @@ class Morph(ControlSurface):
 	
 
 	def _setup_modes(self):
-		self._main_modes = ModesComponent(name = 'MainModes')
-		self._main_modes.add_mode('Main', [self._viewcontrol, self._drum_group, self._keys_group, self._device, self._transport, self._assign_crossfader, self._report_mode])
-		self._main_modes.add_mode('Session', [self._session, self._session_navigation, self._deassign_crossfader, self._recorder, self._translations, self._report_mode])
+		#self._send_modes = ModesComponent(name = 'SendModes')
+		#self._send_modes.add_mode('disabled', [])
+		#self._send_modes.add_mode('SendA', [self._mixer, self._mixer._selected_strip._send_a_layer])
+		#self._send_modes.add_mode('SendB', [self._mixer, self._mixer._selected_strip._send_b_layer])
+		#self._send_modes.layer = Layer(SendA_button = self._button[3], SendB_button = self._button[4])
+		#self._send_modes.selected_mode = 'disabled'
+		#self._send_modes.set_enabled(False)
 
+		self._main_modes = ModesComponent(name = 'MainModes')
+		self._main_modes.add_mode('Main', [self._mixer, self._mixer._selected_strip, self._viewcontrol, self._drum_group, self._drum_group.main_layer, self._keys_group, self._keys_group.main_layer, self._device, self._transport, self._assign_crossfader, self._report_mode])
+		self._main_modes.add_mode('Session', [self._mixer, self._mixer._selected_strip, self._session, self._session_navigation, self._drum_group, self._keys_group, self._keys_group.shift_layer, self._drum_group.nav_layer, self._deassign_crossfader, self._recorder, self._translations, self._report_mode])
 		self._main_modes.layer = Layer(cycle_mode_button = self._button[7])
 		self._main_modes.set_enabled(True)
 		self._main_modes.selected_mode = 'Main'
+
+
 	
 
 	def _report_mode(self):
@@ -278,12 +330,13 @@ class Morph(ControlSurface):
 		return routing == 'Ext: All Ins' or routing == 'All Ins' or routing.startswith('Sensel Morph')
 	
 
-	"""
+
 	@listens('device')
 	def _on_device_changed(self):
-		pass
+		debug('_on_device_changed:', self._device_provider.device)
+		self._drum_group.set_drum_group_device(self._device_provider.device)
 	
-	"""
+
 
 	def disconnect(self):
 		self.log_message('<<<<<<<<<<<<<<<<<<<<<<<<< Morph log closed >>>>>>>>>>>>>>>>>>>>>>>>>')
