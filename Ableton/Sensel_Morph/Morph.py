@@ -39,6 +39,7 @@ from ableton.v2.control_surface.components.playable import PlayableComponent
 from ableton.v2.control_surface.elements.combo import ComboElement, DoublePressElement, MultiElement, DoublePressContext
 from ableton.v2.control_surface.components.background import BackgroundComponent
 from ableton.v2.control_surface.components.session_ring import SessionRingComponent
+from ableton.v2.control_surface.components.scroll import *
 from ableton.v2.base.event import *
 from ableton.v2.base.task import *
 from ableton.v2.control_surface.percussion_instrument_finder import PercussionInstrumentFinder, find_drum_group_device
@@ -61,6 +62,28 @@ MIDI_NOTE_ON_STATUS = 144
 MIDI_NOTE_OFF_STATUS = 128
 MIDI_CC_STATUS = 176
 MIDI_PB_STATUS = 224
+
+
+class MomentaryBehaviour(ModeButtonBehaviour):
+
+
+	def press_immediate(self, component, mode):
+		debug('momentary press')
+		component.push_mode(mode)
+	
+
+	def release_immediate(self, component, mode):
+		debug('momentary release immediate')
+		if len(component.active_modes) > 1:
+			component.pop_mode(mode)
+	
+
+	def release_delayed(self, component, mode):
+		debug('momentary release delayed')
+		if len(component.active_modes) > 1:
+			component.pop_mode(mode)
+	
+
 
 class MorphButtonElement(ButtonElement):
 
@@ -122,7 +145,7 @@ class MorphDeviceComponent(DeviceComponent):
 	
 
 
-class MorphDrumGroup(DrumGroupComponent):
+class MorphDrumGroup(DrumGroupComponent, ScrollComponent, Scrollable):
 
 
 	def set_bank_up_button(self, button):
@@ -131,6 +154,24 @@ class MorphDrumGroup(DrumGroupComponent):
 
 	def set_bank_down_button(self, button):
 		self._bank_down_button_value.subject = button
+	
+
+	def can_scroll_up(self):
+		return 0 <= self.position <= 27
+	
+
+	def can_scroll_down(self):
+		return 1 <= self.position <=28
+	
+
+	def scroll_up(self):
+		self.position += 1
+		#self._update_note_translations()
+	
+
+	def scroll_down(self):
+		self.position += -1
+		#self._update_note_translations()
 	
 
 	@listens('value')
@@ -153,14 +194,64 @@ class MorphDrumGroup(DrumGroupComponent):
 				self._drum_group_device.view.drum_pads_scroll_position = (self.position - 1)
 	
 
-class MorphKeysGroup(PlayableComponent):
+class MorphKeysGroup(PlayableComponent, ScrollComponent, Scrollable):
 
+	_position = 5
+	_channel_offset = 0
+
+	def __init__(self, *a, **k):
+		super(MorphKeysGroup, self).__init__(*a, **k)
+	
+
+	@property
+	def position(self):
+		return self._position
+	
+
+	@position.setter
+	def position(self, index):
+		assert(0 <= index <= 28)
+		self._position = index
+		#self.notify_position()
+	
+
+	def can_scroll_up(self):
+		return self._position < 9
+	
+
+	def can_scroll_down(self):
+		return self._position > 1
+	
+
+	def scroll_up(self):
+		self.position = self.position + 1
+		self._update_note_translations()
+	
+
+	def scroll_down(self):
+		self.position = self.position - 1
+		self._update_note_translations()
+	
+
+	def _note_translation_for_button(self, button):
+		return (button.identifier, button.channel)
+	
+
+	def _update_note_translations(self):
+		for button in self.matrix:
+			if self._button_should_be_enabled(button):
+				self._set_button_control_properties(button)
+				button.enabled = True
+			else:
+				button.enabled = False
+	
 
 	def _set_button_control_properties(self, button):
-		identifier, channel = self._note_translation_for_button(button)
-		button.identifier = identifier
-		button.channel = channel
-		debug('setting:', button, identifier, channel)
+		if button and hasattr(button, '_control_element') and button._control_element:
+			#debug('control info:', button._control_element if hasattr(button, '_control_element') else 'no _control_element')
+			button.identifier = button._control_element.original_identifier() + ((self.position - 5) * 12)
+			button.channel = button._control_element.original_channel() + self._channel_offset
+			#debug('setting:', button, button.identifier , button.channel)
 	
 
 
@@ -212,9 +303,10 @@ class Morph(ControlSurface):
 		self._dial_matrix = ButtonMatrixElement(name = 'DialMatrix', rows = [self._dials])
 		self._button_matrix = ButtonMatrixElement(name = 'ButtonMatrix', rows = [self._button])
 		self._key_matrix = ButtonMatrixElement(name = 'KeyMatrix', rows = [self._key])
-		self._key_shift_matrix = ButtonMatrixElement(name = 'KeyShiftMatrix', rows = [self._key[2:10]])
+		self._key_shift_matrix = ButtonMatrixElement(name = 'KeyShiftMatrix', rows = [self._key[2:11]])
 		self._slider_matrix = ButtonMatrixElement(name = 'SliderMatrix', rows = [self._slider])
 		self._send_pressure_matrix = ButtonMatrixElement(name = 'SendAMatrix', rows = [self._send_pressure])
+		#self._shift_send_pressure_matrix = ButtonMatrixElement(name = 'ShiftSendMatrix', rows = [ [None, None, self._send_pressure[0], self._send_pressure[1]] ])
 	
 
 	def _setup_background(self):
@@ -226,14 +318,14 @@ class Morph(ControlSurface):
 	def _setup_drum_group(self):
 		self._drum_group = MorphDrumGroup(set_pad_translations = self.set_pad_translations, translation_channel = DRUM_TRANSLATION_CHANNEL)
 		self._drum_group.main_layer = AddLayerMode(self._drum_group, Layer(matrix = self._pad_matrix))
-		self._drum_group.nav_layer = AddLayerMode(self._drum_group, Layer(bank_up_button = self._key[2], bank_down_button = self._key[0]))
+		self._drum_group.nav_layer = AddLayerMode(self._drum_group, Layer(scroll_up_button = self._key[1], scroll_down_button = self._key[0]))
 		self._drum_group.set_enabled(False)
 	
 
 	def _setup_keys_group(self):
 		self._keys_group = MorphKeysGroup()
 		self._keys_group.main_layer = AddLayerMode(self._keys_group, Layer(matrix = self._key_matrix))
-		self._keys_group.shift_layer = AddLayerMode(self._keys_group, Layer(matrix = self._key_shift_matrix))
+		self._keys_group.shift_layer = AddLayerMode(self._keys_group, Layer(matrix = self._key_shift_matrix, scroll_up_button = self._key[12], scroll_down_button = self._key[11]))
 		self._keys_group.set_enabled(False)
 	
 
@@ -252,7 +344,7 @@ class Morph(ControlSurface):
 	def _setup_translations(self):
 		self._translations = TranslationComponent(name='Translations', 
 													channel=USER_CHANNEL, 
-													controls = self._key + self._dials)
+													controls = self._dials)
 		self._translations.set_enabled(False)
 	
 
@@ -276,7 +368,8 @@ class Morph(ControlSurface):
 
 	def _setup_mixer(self):
 		self._mixer = MixerComponent(tracks_provider = self._session_ring, track_assigner = simple_track_assigner, auto_name = True, invert_mute_feedback = False)
-		self._mixer._selected_strip.layer = Layer(send_controls = self._send_pressure_matrix)
+		self._mixer._selected_strip.main_layer = AddLayerMode(self._mixer, Layer(send_controls = self._send_pressure_matrix))
+		#self._mixer._selected_strip.shift_layer = AddLayerMode(self._mixer, Layer(send_controls = self._shift_send_pressure_matrix.submatrix[:,]))
 	
 
 	def _setup_viewcontrol(self):
@@ -311,10 +404,12 @@ class Morph(ControlSurface):
 		#self._send_modes.set_enabled(False)
 
 		self._main_modes = ModesComponent(name = 'MainModes')
-		self._main_modes.add_mode('Main', [self._mixer, self._mixer._selected_strip, self._viewcontrol, self._drum_group, self._drum_group.main_layer, self._keys_group, self._keys_group.main_layer, self._device, self._transport, self._assign_crossfader, self._report_mode])
-		self._main_modes.add_mode('Session', [self._mixer, self._mixer._selected_strip, self._session, self._session_navigation, self._drum_group, self._keys_group, self._keys_group.shift_layer, self._drum_group.nav_layer, self._deassign_crossfader, self._recorder, self._translations, self._report_mode])
-		self._main_modes.layer = Layer(cycle_mode_button = self._button[7])
+		self._main_modes.add_mode('disabled', self._background)
+		self._main_modes.add_mode('Main', [self._mixer, self._mixer._selected_strip.main_layer, self._viewcontrol, self._drum_group, self._drum_group.main_layer, self._keys_group, self._keys_group.main_layer, self._device, self._transport, self._assign_crossfader, self._report_mode])
+		self._main_modes.add_mode('Shift', [self._mixer, self._mixer._selected_strip.main_layer, self._session, self._session_navigation,  self._drum_group, self._drum_group.nav_layer, self._keys_group, self._keys_group.shift_layer, self._deassign_crossfader, self._recorder, self._translations, self._report_mode], behaviour = MomentaryBehaviour())
+		self._main_modes.layer = Layer(Shift_button = self._button[7])
 		self._main_modes.set_enabled(True)
+		self._main_modes.selected_mode = 'disabled'
 		self._main_modes.selected_mode = 'Main'
 
 
