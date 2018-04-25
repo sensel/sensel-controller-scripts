@@ -14,6 +14,8 @@ DRUM_TRANSLATION_CHANNEL = 9
 
 USER_CHANNEL = 3
 
+PIANO_CHANNEL = 4
+
 MORPH_PADS = [[48, 49, 50, 51], [44, 45, 46, 47], [40, 41, 42, 43], [36, 37, 38, 39]]
 
 MORPH_KEYS = [note for note in range(60, 73)]
@@ -25,6 +27,10 @@ MORPH_SLIDERS = [17, 18]
 MORPH_DIALS = [index for index in range(9, 17)]
 
 MORPH_SEND_PRESSURE = [19, 20]
+
+PIANO_BUTTONS = [9, 10, 11, 12]
+
+PIANO_KEYS = [note for note in range(60, 85)]
 
 CHANNELS = ['Ch. 2', 'Ch. 3', 'Ch. 4', 'Ch. 5', 'Ch. 6', 'Ch. 7', 'Ch. 8', 'Ch. 9', 'Ch. 10', 'Ch. 11', 'Ch. 12', 'Ch. 13', 'Ch. 14']
 

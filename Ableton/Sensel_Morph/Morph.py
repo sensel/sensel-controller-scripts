@@ -254,6 +254,9 @@ class MorphKeysGroup(PlayableComponent, ScrollComponent, Scrollable):
 			#debug('setting:', button, button.identifier , button.channel)
 	
 
+#class MorphMixerComponent(MixerComponent):
+#
+
 
 class Morph(ControlSurface):
 
@@ -269,6 +272,7 @@ class Morph(ControlSurface):
 			self._setup_background()
 			self._setup_drum_group()
 			self._setup_keys_group()
+			self._setup_piano_group()
 			self._setup_autoarm()
 			self._setup_device()
 			self._setup_session()
@@ -307,6 +311,11 @@ class Morph(ControlSurface):
 		self._slider_matrix = ButtonMatrixElement(name = 'SliderMatrix', rows = [self._slider])
 		self._send_pressure_matrix = ButtonMatrixElement(name = 'SendAMatrix', rows = [self._send_pressure])
 		#self._shift_send_pressure_matrix = ButtonMatrixElement(name = 'ShiftSendMatrix', rows = [ [None, None, self._send_pressure[0], self._send_pressure[1]] ])
+
+		self._piano_button = [MorphButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = CHANNEL, identifier = PIANO_BUTTONS[index], name = 'PianoButton_' + str(index), skin = self._skin, resource_type = resource) for index in range(4)]
+		self._piano_key = [MorphButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = PIANO_CHANNEL, identifier = PIANO_KEYS[index], name = 'PianoKey_' + str(index), skin = self._skin, resource_type = resource) for index in range(24)]
+
+		self._piano_matrix = ButtonMatrixElement(name = 'PianoMatrix', rows = [self._piano_key])
 	
 
 	def _setup_background(self):
@@ -327,6 +336,13 @@ class Morph(ControlSurface):
 		self._keys_group.main_layer = AddLayerMode(self._keys_group, Layer(matrix = self._key_matrix))
 		self._keys_group.shift_layer = AddLayerMode(self._keys_group, Layer(matrix = self._key_shift_matrix, scroll_up_button = self._key[12], scroll_down_button = self._key[11]))
 		self._keys_group.set_enabled(False)
+	
+
+	def _setup_piano_group(self):
+		self._piano_group = MorphKeysGroup()
+		self._piano_group.main_layer = AddLayerMode(self._piano_group, Layer(matrix = self._piano_matrix, scroll_up_button = self._piano_button[1], scroll_down_button = self._piano_button[0]))
+		#self._piano_group.shift_layer = AddLayerMode(self._piano_group, Layer(matrix = self._piano_shift_matrix, scroll_up_button = self._pian0[12], scroll_down_button = self._key[11]))
+		self._piano_group.set_enabled(False)
 	
 
 	def _setup_autoarm(self):
@@ -368,7 +384,7 @@ class Morph(ControlSurface):
 
 	def _setup_mixer(self):
 		self._mixer = MixerComponent(tracks_provider = self._session_ring, track_assigner = simple_track_assigner, auto_name = True, invert_mute_feedback = False)
-		self._mixer._selected_strip.main_layer = AddLayerMode(self._mixer, Layer(send_controls = self._send_pressure_matrix))
+		self._mixer._selected_strip.main_layer = AddLayerMode(self._mixer._selected_strip, Layer(send_controls = self._send_pressure_matrix))
 		#self._mixer._selected_strip.shift_layer = AddLayerMode(self._mixer, Layer(send_controls = self._shift_send_pressure_matrix.submatrix[:,]))
 	
 
@@ -405,8 +421,8 @@ class Morph(ControlSurface):
 
 		self._main_modes = ModesComponent(name = 'MainModes')
 		self._main_modes.add_mode('disabled', self._background)
-		self._main_modes.add_mode('Main', [self._mixer, self._mixer._selected_strip.main_layer, self._viewcontrol, self._drum_group, self._drum_group.main_layer, self._keys_group, self._keys_group.main_layer, self._device, self._transport, self._assign_crossfader, self._report_mode])
-		self._main_modes.add_mode('Shift', [self._mixer, self._mixer._selected_strip.main_layer, self._session, self._session_navigation,  self._drum_group, self._drum_group.nav_layer, self._keys_group, self._keys_group.shift_layer, self._deassign_crossfader, self._recorder, self._translations, self._report_mode], behaviour = MomentaryBehaviour())
+		self._main_modes.add_mode('Main', [self._piano_group, self._piano_group.main_layer, self._mixer, self._mixer._selected_strip.main_layer, self._viewcontrol, self._drum_group, self._drum_group.main_layer, self._keys_group, self._keys_group.main_layer, self._device, self._transport, self._assign_crossfader, self._report_mode])
+		self._main_modes.add_mode('Shift', [self._piano_group, self._piano_group.main_layer, self._mixer, self._mixer._selected_strip.main_layer, self._session, self._session_navigation,  self._drum_group, self._drum_group.nav_layer, self._keys_group, self._keys_group.shift_layer, self._deassign_crossfader, self._recorder, self._translations, self._report_mode], behaviour = MomentaryBehaviour())
 		self._main_modes.layer = Layer(Shift_button = self._button[7])
 		self._main_modes.set_enabled(True)
 		self._main_modes.selected_mode = 'disabled'
