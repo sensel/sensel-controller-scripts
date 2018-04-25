@@ -4,9 +4,6 @@ loadAPI(4);
 // This is useful during development.
 host.setShouldFailOnDeprecatedUse(true);
 
-var LOWEST_CC = 1;
-var HIGHEST_CC = 64;
-
 //for MP overlay:
 var DEVICE_START_CC = 9;
 var DEVICE_END_CC = 16;
@@ -20,8 +17,8 @@ var NUM_SENDS = 2;
 var NUM_SCENES = 4;
 
 host.defineController("Sensel", "Sensel Morph MPE", "0.1", "f47ebb13-8281-44d7-a44b-7ca7a6778bf4", "Peter Nyboer");
-
 host.defineMidiPorts(1, 0);
+host.setShouldFailOnDeprecatedUse(true);
 
 if (host.platformIsWindows())
 {
@@ -48,6 +45,7 @@ function init() {
    host.getMidiInPort(0).setSysexCallback(onSysex0);
    noteInput = host.getMidiInPort(0).createNoteInput("", "??????");
    noteInput.setUseExpressiveMidi(true, 0, 24);
+   noteInput.setShouldConsumeEvents(false);
 
    //observer for Clip overdub
    transport.isClipLauncherOverdubEnabled().markInterested();
@@ -62,21 +60,11 @@ function init() {
      p.setIndication(true);
      p.setLabel("P" + (i + 1));
    }
-   // Make the rest freely mappable
-   userControls = host.createUserControls(HIGHEST_CC - LOWEST_CC + 1 - 8);
-    for ( var i = LOWEST_CC; i < HIGHEST_CC; i++)
-    {
-      if (!isInDeviceParametersRange(i))
-      {
-        var index = userIndexFromCC(i);
-        userControls.getControl(index).setLabel("CC" + i);
-      }
-    }
 
     //observe current track
     cursorTrack.position().markInterested();
 
-  println("Sensel Morph MPE Extended script loaded!");
+  println("Sensel Morph MPE Extended script.");
 }
 
 function isInDeviceParametersRange(cc)
@@ -85,16 +73,6 @@ function isInDeviceParametersRange(cc)
 
 function isInFcnRange(cc)
 {  return cc >= FCN_START_CC && cc <= FCN_END_CC;
-}
-
-function userIndexFromCC(cc)
-{
-  if (cc > DEVICE_END_CC)
-  {
-    return cc - LOWEST_CC - 8;
-  }
-
-  return cc - LOWEST_CC;
 }
 
 // Called when a short MIDI message is received on MIDI input port 0.
@@ -133,12 +111,6 @@ function onMidi0(status, data1, data2) {
        if(data1==(FCN_START_CC+7)){
          //implement a function
        }
-     }
-     //user definied controls for other CCs
-     else if (data1 >= LOWEST_CC && data1 <= HIGHEST_CC)
-     {
-       var index = data1 - LOWEST_CC;
-       userControls.getControl(index).value().set(data2, 128);
      }
    }
 }
