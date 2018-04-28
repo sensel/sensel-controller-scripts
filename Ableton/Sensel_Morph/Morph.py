@@ -27,7 +27,7 @@ from ableton.v2.control_surface.components.session import SessionComponent
 from ableton.v2.control_surface.components.transport import TransportComponent
 from ableton.v2.control_surface.components.session_navigation import SessionNavigationComponent
 from ableton.v2.control_surface.mode import AddLayerMode, LayerMode, ModesComponent, ModeButtonBehaviour, DelayMode
-from ableton.v2.control_surface.resource import PrioritizedResource
+from ableton.v2.control_surface.resource import PrioritizedResource, ExclusiveResource
 from ableton.v2.control_surface.skin import Skin
 from ableton.v2.control_surface import DeviceBankRegistry
 from ableton.v2.control_surface.components.device import DeviceComponent
@@ -43,6 +43,8 @@ from ableton.v2.control_surface.components.scroll import *
 from ableton.v2.base.event import *
 from ableton.v2.base.task import *
 from ableton.v2.control_surface.percussion_instrument_finder import PercussionInstrumentFinder, find_drum_group_device
+
+from aumhaa.v2.control_surface.elements.mono_button import MonoButtonElement
 
 from pushbase.auto_arm_component import AutoArmComponent
 
@@ -90,6 +92,7 @@ class MorphButtonElement(ButtonElement):
 
 	def set_enabled(self, enabled = True):
 		self._is_enabled = enabled
+		self.suppress_script_forwarding = not enabled
 		self._request_rebuild()
 	
 
@@ -98,8 +101,14 @@ class MorphEncoderElement(EncoderElement):
 
 	def set_enabled(self, enabled = True):
 		self._is_enabled = enabled
+		self.suppress_script_forwarding = not enabled
 		self._request_rebuild()
 	
+
+
+#class MorphBackgroundComponent(BackgroundComponent):
+
+
 
 
 class TranslationComponent(CompoundComponent):
@@ -198,6 +207,7 @@ class MorphKeysGroup(PlayableComponent, ScrollComponent, Scrollable):
 
 	_position = 5
 	_channel_offset = 0
+	_hi_limit = 9
 
 	def __init__(self, *a, **k):
 		super(MorphKeysGroup, self).__init__(*a, **k)
@@ -216,7 +226,7 @@ class MorphKeysGroup(PlayableComponent, ScrollComponent, Scrollable):
 	
 
 	def can_scroll_up(self):
-		return self._position < 9
+		return self._position < self._hi_limit
 	
 
 	def can_scroll_down(self):
@@ -270,12 +280,14 @@ class Morph(ControlSurface):
 		with self.component_guard():
 			self._setup_controls()
 			self._setup_background()
+			#self._setup_button_background()
 			self._setup_drum_group()
 			self._setup_keys_group()
 			self._setup_piano_group()
 			self._setup_autoarm()
 			self._setup_device()
 			self._setup_session()
+			self._setup_session2()
 			self._setup_mixer()
 			self._setup_transport()
 			self._setup_viewcontrol()
@@ -285,19 +297,26 @@ class Morph(ControlSurface):
 		self._on_device_changed.subject = self._device_provider
 		self.log_message('<<<<<<<<<<<<<<<<<<<<<<<<< Morph log opened >>>>>>>>>>>>>>>>>>>>>>>>>')
 		self.show_message('Morph Control Surface Loaded')
+		self.schedule_message(2, self._init_surface)
 		#debug('device:', self._device._get_device())
 	
 
 
+	def _init_surface(self):
+		self._main_modes.selected_mode = 'Main'
+	
+
 	def _setup_controls(self):
 		is_momentary = True
 		optimized = False
-		resource = PrioritizedResource
+		resource = ExclusiveResource #PrioritizedResource
 		self._pad = [[ButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = CHANNEL, identifier = MORPH_PADS[row][column], name = 'Pad_' + str(column) + '_' + str(row), skin = self._skin, resource_type = resource) for column in range(4)] for row in range(4)]
 		for row in self._pad:
 			for pad in row:
 				pad.enabled = False
-		self._button = [MorphButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = CHANNEL, identifier = MORPH_BUTTONS[index], name = 'Button_' + str(index), skin = self._skin, resource_type = resource) for index in range(8)]
+		self._button = [MonoButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = CHANNEL, identifier = MORPH_BUTTONS[index], name = 'Button_' + str(index), skin = self._skin, resource_type = resource) for index in range(8)]
+		for button in self._button:
+			button.set_enabled = False
 		self._key = [MorphButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = KEY_CHANNEL, identifier = MORPH_KEYS[index], name = 'Key_' + str(index), skin = self._skin, resource_type = resource) for index in range(13)]
 		self._dials = [MorphEncoderElement(msg_type = MIDI_CC_TYPE, channel = CHANNEL, identifier = MORPH_DIALS[index], map_mode = Live.MidiMap.MapMode.absolute, name = 'Dial_' + str(index), resource_type = resource) for index in range(8)]
 		self._slider = [MorphEncoderElement(msg_type = MIDI_CC_TYPE, channel = CHANNEL, identifier = MORPH_SLIDERS[index], map_mode = Live.MidiMap.MapMode.absolute, name = 'Slider_' + str(index), resource_type = resource) for index in range(2)]
@@ -313,34 +332,39 @@ class Morph(ControlSurface):
 		#self._shift_send_pressure_matrix = ButtonMatrixElement(name = 'ShiftSendMatrix', rows = [ [None, None, self._send_pressure[0], self._send_pressure[1]] ])
 
 		self._piano_button = [MorphButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = CHANNEL, identifier = PIANO_BUTTONS[index], name = 'PianoButton_' + str(index), skin = self._skin, resource_type = resource) for index in range(4)]
-		self._piano_key = [MorphButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = PIANO_CHANNEL, identifier = PIANO_KEYS[index], name = 'PianoKey_' + str(index), skin = self._skin, resource_type = resource) for index in range(24)]
+		for button in self._piano_button:
+			button.enabled = False
+		self._piano_key = [MorphButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = PIANO_CHANNEL, identifier = PIANO_KEYS[index], name = 'PianoKey_' + str(index), skin = self._skin, resource_type = resource) for index in range(25)]
 
 		self._piano_matrix = ButtonMatrixElement(name = 'PianoMatrix', rows = [self._piano_key])
+		self._piano_session_matrix = ButtonMatrixElement(name = 'PianoSessionMatrix', rows = [self._piano_key[0:4], self._piano_key[4:8], self._piano_key[8:12], self._piano_key[12:16]])
 	
 
 	def _setup_background(self):
 		self._background = BackgroundComponent()
-		self._background.layer = Layer(pads = self._pad_matrix.submatrix[:,:], buttons = self._button_matrix.submatrix[:,:], keys = self._key_matrix.submatrix[:,:], dials = self._dial_matrix.submatrix[:,:], sliders = self._slider_matrix.submatrix[:,:])
-		self._background.set_enabled(True)
+		self._background.layer = Layer(priority = 1, pads = self._pad_matrix, buttons = self._button_matrix, keys = self._key_matrix, dials = self._dial_matrix, sliders = self._slider_matrix)
+		self._background.set_enabled(False)
 	
+
 
 	def _setup_drum_group(self):
 		self._drum_group = MorphDrumGroup(set_pad_translations = self.set_pad_translations, translation_channel = DRUM_TRANSLATION_CHANNEL)
-		self._drum_group.main_layer = AddLayerMode(self._drum_group, Layer(matrix = self._pad_matrix))
-		self._drum_group.nav_layer = AddLayerMode(self._drum_group, Layer(scroll_up_button = self._key[1], scroll_down_button = self._key[0]))
+		self._drum_group.main_layer = AddLayerMode(self._drum_group, Layer(priority = 2, matrix = self._pad_matrix))
+		self._drum_group.nav_layer = AddLayerMode(self._drum_group, Layer(priority = 2, scroll_up_button = self._key[1], scroll_down_button = self._key[0]))
 		self._drum_group.set_enabled(False)
 	
 
 	def _setup_keys_group(self):
 		self._keys_group = MorphKeysGroup()
-		self._keys_group.main_layer = AddLayerMode(self._keys_group, Layer(matrix = self._key_matrix))
-		self._keys_group.shift_layer = AddLayerMode(self._keys_group, Layer(matrix = self._key_shift_matrix, scroll_up_button = self._key[12], scroll_down_button = self._key[11]))
+		self._keys_group.main_layer = AddLayerMode(self._keys_group, Layer(priority = 2, matrix = self._key_matrix))
+		self._keys_group.shift_layer = AddLayerMode(self._keys_group, Layer(priority = 2, matrix = self._key_shift_matrix, scroll_up_button = self._key[12], scroll_down_button = self._key[11]))
 		self._keys_group.set_enabled(False)
 	
 
 	def _setup_piano_group(self):
 		self._piano_group = MorphKeysGroup()
-		self._piano_group.main_layer = AddLayerMode(self._piano_group, Layer(matrix = self._piano_matrix, scroll_up_button = self._piano_button[1], scroll_down_button = self._piano_button[0]))
+		self._piano_group._hi_limit = 8
+		self._piano_group.main_layer = AddLayerMode(self._piano_group, Layer(priority = 2, matrix = self._piano_matrix, scroll_up_button = self._piano_button[1], scroll_down_button = self._piano_button[0]))
 		#self._piano_group.shift_layer = AddLayerMode(self._piano_group, Layer(matrix = self._piano_shift_matrix, scroll_up_button = self._pian0[12], scroll_down_button = self._key[11]))
 		self._piano_group.set_enabled(False)
 	
@@ -353,20 +377,20 @@ class Morph(ControlSurface):
 
 	def _setup_transport(self):
 		self._transport = TransportComponent(name = 'Transport') 
-		self._transport.layer = Layer(play_button = self._button[4], stop_button = self._button[5], overdub_button = self._button[6])
+		self._transport.layer = Layer(priority = 2, play_button = self._button[4], stop_button = self._button[5], overdub_button = self._button[6])
 		self._transport.set_enabled(False)
 	
 
 	def _setup_translations(self):
 		self._translations = TranslationComponent(name='Translations', 
 													channel=USER_CHANNEL, 
-													controls = self._dials)
+													controls = self._dials + self._slider)
 		self._translations.set_enabled(False)
 	
 
 	def _setup_device(self):
 		self._device = MorphDeviceComponent(device_provider = self._device_provider, device_bank_registry = self._device_bank_registry)
-		self._device.layer = Layer(parameter_controls = self._dial_matrix)
+		self._device.layer = Layer(priority = 2, parameter_controls = self._dial_matrix)
 		self._device.set_enabled(False)
 	
 
@@ -374,29 +398,39 @@ class Morph(ControlSurface):
 		self._session_ring = SessionRingComponent(name = 'Session_Ring', num_tracks = 4, num_scenes = 4)
 
 		self._session = SessionComponent(name = 'Session', session_ring = self._session_ring, auto_name = True)
-		self._session.layer = Layer(clip_launch_buttons = self._pad_matrix, stop_all_clips_button = self._button[5])
+		self._session.layer = Layer(priority = 2, clip_launch_buttons = self._pad_matrix, stop_all_clips_button = self._button[5])
 		self._session.set_enabled(False)
 
 		self._session_navigation = SessionNavigationComponent(name = 'Session_Navigation', session_ring = self._session_ring)
-		self._session_navigation.layer = Layer(left_button = self._button[0], right_button = self._button[1])
+		self._session_navigation.layer = Layer(priority = 2, left_button = self._button[0], right_button = self._button[1])
 		self._session_navigation.set_enabled(False)
+	
+
+	def _setup_session2(self):
+		self._session2 = SessionComponent(name = 'Session2', session_ring = self._session_ring, auto_name = True)
+		self._session2.layer = Layer(priority = 2, clip_launch_buttons = self._piano_session_matrix)
+		self._session2.set_enabled(False)
+
+		#self._session_navigation2 = SessionNavigationComponent(name = 'Session_Navigation2', session_ring = self._session_ring)
+		#self._session_navigation2.layer = Layer(priority = 2, left_button = self._button[0], right_button = self._button[1])
+		#self._session_navigation2.set_enabled(False)
 	
 
 	def _setup_mixer(self):
 		self._mixer = MixerComponent(tracks_provider = self._session_ring, track_assigner = simple_track_assigner, auto_name = True, invert_mute_feedback = False)
-		self._mixer._selected_strip.main_layer = AddLayerMode(self._mixer._selected_strip, Layer(send_controls = self._send_pressure_matrix))
+		self._mixer._selected_strip.main_layer = AddLayerMode(self._mixer._selected_strip, Layer(priority = 2, send_controls = self._send_pressure_matrix))
 		#self._mixer._selected_strip.shift_layer = AddLayerMode(self._mixer, Layer(send_controls = self._shift_send_pressure_matrix.submatrix[:,]))
 	
 
 	def _setup_viewcontrol(self):
 		self._viewcontrol = ViewControlComponent()
-		self._viewcontrol.layer = Layer(prev_track_button = self._button[0], next_track_button = self._button[1])
+		self._viewcontrol.layer = Layer(priority = 2, prev_track_button = self._button[0], next_track_button = self._button[1])
 		self._viewcontrol.set_enabled(False)
 	
 
 	def _setup_recorder(self):
 		self._recorder = SessionRecordingComponent(view_controller = ViewControlComponent())
-		self._recorder.layer = Layer(record_button = self._button[6])
+		self._recorder.layer = Layer(priority = 2, record_button = self._button[6])
 		self._recorder.set_enabled(False)
 	
 
@@ -422,16 +456,18 @@ class Morph(ControlSurface):
 		self._main_modes = ModesComponent(name = 'MainModes')
 		self._main_modes.add_mode('disabled', self._background)
 		self._main_modes.add_mode('Main', [self._piano_group, self._piano_group.main_layer, self._mixer, self._mixer._selected_strip.main_layer, self._viewcontrol, self._drum_group, self._drum_group.main_layer, self._keys_group, self._keys_group.main_layer, self._device, self._transport, self._assign_crossfader, self._report_mode])
-		self._main_modes.add_mode('Shift', [self._piano_group, self._piano_group.main_layer, self._mixer, self._mixer._selected_strip.main_layer, self._session, self._session_navigation,  self._drum_group, self._drum_group.nav_layer, self._keys_group, self._keys_group.shift_layer, self._deassign_crossfader, self._recorder, self._translations, self._report_mode], behaviour = MomentaryBehaviour())
+		self._main_modes.add_mode('Shift', [self._mixer, self._mixer._selected_strip.main_layer, self._session, self._session2, self._session_navigation,  self._drum_group, self._drum_group.nav_layer, self._keys_group, self._keys_group.shift_layer, self._deassign_crossfader, self._recorder, self._translations, self._report_mode], behaviour = MomentaryBehaviour())
 		self._main_modes.layer = Layer(Shift_button = self._button[7])
 		self._main_modes.set_enabled(True)
+		self._report_mode.subject = self._main_modes
 		self._main_modes.selected_mode = 'disabled'
-		self._main_modes.selected_mode = 'Main'
+
 
 
 	
 
-	def _report_mode(self):
+	@listens('selected_mode')
+	def _report_mode(self, *a, **k):
 		debug('Mode:', self._main_modes.selected_mode)
 	
 
