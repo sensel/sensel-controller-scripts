@@ -445,18 +445,10 @@ class Morph(ControlSurface):
 	
 
 	def _setup_modes(self):
-		#self._send_modes = ModesComponent(name = 'SendModes')
-		#self._send_modes.add_mode('disabled', [])
-		#self._send_modes.add_mode('SendA', [self._mixer, self._mixer._selected_strip._send_a_layer])
-		#self._send_modes.add_mode('SendB', [self._mixer, self._mixer._selected_strip._send_b_layer])
-		#self._send_modes.layer = Layer(SendA_button = self._button[3], SendB_button = self._button[4])
-		#self._send_modes.selected_mode = 'disabled'
-		#self._send_modes.set_enabled(False)
-
 		self._main_modes = ModesComponent(name = 'MainModes')
 		self._main_modes.add_mode('disabled', self._background)
 		self._main_modes.add_mode('Main', [self._piano_group, self._piano_group.main_layer, self._mixer, self._mixer._selected_strip.main_layer, self._viewcontrol, self._drum_group, self._drum_group.main_layer, self._keys_group, self._keys_group.main_layer, self._device, self._transport, self._assign_crossfader, self._report_mode])
-		self._main_modes.add_mode('Shift', [self._mixer, self._mixer._selected_strip.main_layer, self._session, self._session2, self._session_navigation,  self._drum_group, self._drum_group.nav_layer, self._keys_group, self._keys_group.shift_layer, self._deassign_crossfader, self._recorder, self._translations, self._report_mode], behaviour = MomentaryBehaviour())
+		self._main_modes.add_mode('Shift', [self._session, self._session2, self._session_navigation,  self._drum_group, self._drum_group.nav_layer, self._keys_group, self._keys_group.shift_layer, self._deassign_crossfader, self._recorder, self._translations, self._report_mode], behaviour = MomentaryBehaviour())
 		self._main_modes.layer = Layer(Shift_button = self._button[7])
 		self._main_modes.set_enabled(True)
 		self._report_mode.subject = self._main_modes
