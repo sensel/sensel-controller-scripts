@@ -71,6 +71,11 @@ Pitchbend and Crossfade
 Need to make some loops to demonstrate Crossfade and DJ stuff with shift-knobs on user assign.
 
 
+—to shoot—
+installer
+installation and download process
+user mapping
+
  
 ————bug notes————
 Should stop clips be for track only?
