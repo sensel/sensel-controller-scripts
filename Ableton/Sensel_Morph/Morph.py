@@ -1,5 +1,5 @@
 # by amounra 0118 : http://www.aumhaa.com
-# written against Live 10
+# written against Live 10.0.2
 
 from __future__ import with_statement, print_function, unicode_literals
 import Live
@@ -44,15 +44,30 @@ from ableton.v2.base.event import *
 from ableton.v2.base.task import *
 from ableton.v2.control_surface.percussion_instrument_finder import PercussionInstrumentFinder, find_drum_group_device
 
-from aumhaa.v2.control_surface.elements.mono_button import MonoButtonElement
+#from aumhaa.v2.control_surface.elements.mono_button import MonoButtonElement
 
 from pushbase.auto_arm_component import AutoArmComponent
 
 from _Generic.Devices import *
 
-from aumhaa.v2.base.debug import initialize_debug
 
-debug = initialize_debug()
+def debug(*a, **k):
+	pass
+
+
+import imp
+
+try:
+	imp.find_module('aumhaa')
+	found = True
+except ImportError:
+	found = False
+
+if found:
+	from aumhaa.v2.base.debug import initialize_debug
+	debug = initialize_debug()
+
+
 
 from Map import *
 
@@ -314,7 +329,7 @@ class Morph(ControlSurface):
 		for row in self._pad:
 			for pad in row:
 				pad.enabled = False
-		self._button = [MonoButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = CHANNEL, identifier = MORPH_BUTTONS[index], name = 'Button_' + str(index), skin = self._skin, resource_type = resource) for index in range(8)]
+		self._button = [ButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = CHANNEL, identifier = MORPH_BUTTONS[index], name = 'Button_' + str(index), skin = self._skin, resource_type = resource) for index in range(8)]
 		for button in self._button:
 			button.set_enabled = False
 		self._key = [MorphButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = KEY_CHANNEL, identifier = MORPH_KEYS[index], name = 'Key_' + str(index), skin = self._skin, resource_type = resource) for index in range(13)]

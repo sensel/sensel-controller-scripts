@@ -1,9 +1,30 @@
 # by amounra 0118 : http://www.aumhaa.com
-# written against Live 10
+# written against Live 10.0.2
 
 
 from ableton.v2.control_surface.elements.color import Color
-from aumhaa.v2.livid.colors import *
+
+class MonoColor(Color):
+
+
+	def draw(self, interface):
+		try:
+			interface.set_darkened_value(0)
+			super(MonoColor, self).draw(interface)
+		except:
+			super(MonoColor, self).draw(interface)
+	
+
+class LividRGB:
+
+	OFF = MonoColor(0)
+	WHITE = MonoColor(1)
+	YELLOW = MonoColor(2)
+	CYAN = MonoColor(3)
+	MAGENTA = MonoColor(4)
+	RED = MonoColor(5)
+	GREEN = MonoColor(6)
+	BLUE = MonoColor(7)
 
 
 CHANNEL = 1
@@ -46,45 +67,26 @@ class MorphColors:
 		On = LividRGB.WHITE
 		Off = LividRGB.OFF
 		Disabled = LividRGB.OFF
-		Alert = LividRGB.BlinkFast.WHITE
+		Alert = LividRGB.WHITE
 	
 
 	class Transport:
-		OverdubOn = LividRGB.BlinkFast.RED
+		OverdubOn = LividRGB.RED
 		OverdubOff = LividRGB.RED
 		PlayOff = LividRGB.GREEN
-		PlayOn = LividRGB.BlinkSlow.GREEN
+		PlayOn = LividRGB.GREEN
 		StopOn = LividRGB.BLUE
 		StopOff = LividRGB.OFF
 	
 
-	ResetSendsColor = LividRGB.WHITE
-
-	class Mod:
-		ShiftOff = LividRGB.OFF
-		ShiftOn = LividRGB.WHITE
-	
-
-	class Mode:
-		Session = LividRGB.BLUE
-		Session_shifted = LividRGB.BlinkFast.BLUE
-		Instrument = LividRGB.CYAN
-		Instrument_shifted = LividRGB.BlinkFast.CYAN
-	
-
-	class ShiftMode:
-		Enabled = LividRGB.BlinkFast.WHITE
-		Disabled = LividRGB.OFF
-	
-
 	class Session:
-		StopClipTriggered = LividRGB.BlinkFast.BLUE
+		StopClipTriggered = LividRGB.BLUE
 		StopClip = LividRGB.BLUE
 		Scene = LividRGB.CYAN
 		NoScene = LividRGB.OFF
-		SceneTriggered = LividRGB.BlinkFast.BLUE
-		ClipTriggeredPlay = LividRGB.BlinkFast.GREEN
-		ClipTriggeredRecord = LividRGB.BlinkFast.RED
+		SceneTriggered = LividRGB.BLUE
+		ClipTriggeredPlay = LividRGB.GREEN
+		ClipTriggeredRecord = LividRGB.RED
 		RecordButton = LividRGB.OFF
 		ClipEmpty = LividRGB.OFF
 		ClipStopped = LividRGB.WHITE
@@ -93,34 +95,6 @@ class MorphColors:
 		NavigationButtonOn = LividRGB.BLUE
 		PageNavigationButtonOn = LividRGB.CYAN
 		Empty = LividRGB.OFF
-	
-
-	class NoteEditor:
-
-		class Step:
-			Low = LividRGB.CYAN
-			High = LividRGB.WHITE 
-			Full = LividRGB.YELLOW
-			Muted = LividRGB.YELLOW
-			StepEmpty = LividRGB.OFF
-		
-
-		class StepEditing:
-			High = LividRGB.GREEN
-			Low = LividRGB.CYAN
-			Full = LividRGB.YELLOW
-			Muted = LividRGB.WHITE
-		
-
-		StepEmpty = LividRGB.OFF
-		StepEmptyBase = LividRGB.OFF
-		StepEmptyScale = LividRGB.OFF
-		StepDisabled = LividRGB.OFF
-		Playhead = Color(31)
-		PlayheadRecord = Color(31)
-		StepSelected = LividRGB.GREEN
-		QuantizationSelected = LividRGB.RED
-		QuantizationUnselected = LividRGB.MAGENTA
 	
 
 	class LoopSelector:
@@ -162,31 +136,24 @@ class MorphColors:
 	
 
 	class Recording:
-		On = LividRGB.BlinkFast.RED
+		On = LividRGB.RED
 		Off = LividRGB.RED
-		Transition = LividRGB.BlinkSlow.RED
+		Transition = LividRGB.RED
 	
 
 	class Recorder:
 		On = LividRGB.WHITE
 		Off = LividRGB.BLUE
-		NewOn = LividRGB.BlinkFast.YELLOW
+		NewOn = LividRGB.YELLOW
 		NewOff = LividRGB.YELLOW
-		FixedOn = LividRGB.BlinkFast.CYAN
+		FixedOn = LividRGB.CYAN
 		FixedOff = LividRGB.CYAN
-		RecordOn = LividRGB.BlinkFast.GREEN
+		RecordOn = LividRGB.GREEN
 		RecordOff = LividRGB.GREEN
 		FixedAssigned = LividRGB.MAGENTA
 		FixedNotAssigned = LividRGB.OFF
-		OverdubOn = LividRGB.BlinkFast.RED
+		OverdubOn = LividRGB.RED
 		OverdubOff = LividRGB.RED
-	
-
-	class Sequencer:
-		OctaveOn = LividRGB.BlinkFast.CYAN
-		OctaveOff = LividRGB.OFF
-		On = LividRGB.WHITE
-		Off = LividRGB.OFF
 	
 
 	class Device:
@@ -200,44 +167,6 @@ class MorphColors:
 		ContainNavOff = LividRGB.OFF
 	
 
-	class DeviceNavigator:
-		DevNavOff = LividRGB.OFF
-		DevNavOn = LividRGB.MAGENTA
-		ChainNavOn = LividRGB.RED
-		ChainNavOff = LividRGB.OFF
-		LevelNavOn = LividRGB.CYAN
-		LevelNavOff = LividRGB.OFF
-	
-
-	class MonoInstrument:
-
-		PressFlash = LividRGB.WHITE
-		OffsetOnValue = LividRGB.GREEN
-		OffsetOffValue = LividRGB.OFF
-		ScaleOffsetOnValue = LividRGB.RED
-		ScaleOffsetOffValue = LividRGB.OFF
-		SplitModeOnValue = LividRGB.WHITE
-		SplitModeOffValue = LividRGB.OFF
-		SequencerModeOnValue = LividRGB.CYAN
-		SequencerModeOffValue = LividRGB.OFF
-		DrumOffsetOnValue = LividRGB.MAGENTA
-		DrumOffsetOffValue = LividRGB.OFF
-		VerticalOffsetOnValue = LividRGB.BLUE
-		VerticalOffsetOffValue = LividRGB.OFF
-
-		class Keys:
-			SelectedNote = LividRGB.GREEN
-			RootWhiteValue = LividRGB.RED
-			RootBlackValue = LividRGB.MAGENTA
-			WhiteValue = LividRGB.CYAN
-			BlackValue = LividRGB.BLUE
-		
-
-		class Drums:
-			SelectedNote = LividRGB.BLUE
-			EvenValue = LividRGB.GREEN
-			OddValue = LividRGB.MAGENTA
-		
 
 	
 ## a
