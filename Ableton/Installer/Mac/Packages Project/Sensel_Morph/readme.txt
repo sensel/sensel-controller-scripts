@@ -1,3 +1,8 @@
-In order to build installer, you’ll need to place a current copy of “Sensel_Morph” controller scripts at the destination location on your system (/Users/Shared/Sensel_Morph) before building.  There’s surely a better way to do this, but this is a good start…
+In order to build installer, you’ll need to:
+ 
+* place a current copy of “Sensel_Morph” controller scripts at the destination location on your system (/Users/Shared/Sensel_Morph)
+* place a current copy of the “Project” folder (has a Live project) at the destination location on your system (/Users/Shared/Project)
+
+before building.  There’s surely a better way to do this, but this is a good start.
 
 The project file uses the Packages software available here: http://s.sudre.free.fr/Software/Packages/about.html
