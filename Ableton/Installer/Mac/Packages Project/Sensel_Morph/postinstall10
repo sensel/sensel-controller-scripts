@@ -1,6 +1,8 @@
 #! /bin/sh
 
 sudo chown -R $USER /Users/Shared/Sensel_Morph
+sudo chown -R $USER /Users/Shared/Project
+
 COUNTER=0
 find /Applications -maxdepth 1 -name 'Ableton Live 10*' | while read line; do
     if [ "$COUNTER" -eq 0 ]
@@ -12,4 +14,9 @@ find /Applications -maxdepth 1 -name 'Ableton Live 10*' | while read line; do
     COUNTER=$[$COUNTER +1]
 done
 
+mkdir ~/Documents/Sensel\ Morph/Ableton\ Live\ Script\ Project
+cp -r /Users/Shared/Project/Sensel\ Live\ Remote\ Script\ Demo.alp ~/Documents/Sensel\ Morph/Ableton\ Live\ Script\ Project
+sudo chown -R $USER ~/Documents/Sensel\ Morph/Ableton\ Live\ Script\ Project
+
 rm -r /Users/Shared/Sensel_Morph
+rm -r /Users/Shared/Project
