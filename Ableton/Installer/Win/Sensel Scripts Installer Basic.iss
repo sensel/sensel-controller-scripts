@@ -37,10 +37,11 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-Source: "..\..\Ableton\*"; DestDir: "{commonappdata}\Ableton\Live 10 Trial\Resources\MIDI Remote Scripts"; Check: TrialCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\Ableton\*"; DestDir: "{commonappdata}\Ableton\Live 10 Suite\Resources\MIDI Remote Scripts"; Check: SuiteCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\Ableton\*"; DestDir: "{commonappdata}\Ableton\Live 10 Standard\Resources\MIDI Remote Scripts"; Check: StdCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\Ableton\*"; DestDir: "{commonappdata}\Ableton\Live 10 Lite\Resources\MIDI Remote Scripts"; Check: LiteCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\Ableton\Sensel_Morph"; DestDir: "{commonappdata}\Ableton\Live 10 Trial\Resources\MIDI Remote Scripts"; Check: TrialCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\Ableton\Sensel_Morph"; DestDir: "{commonappdata}\Ableton\Live 10 Suite\Resources\MIDI Remote Scripts"; Check: SuiteCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\Ableton\Sensel_Morph"; DestDir: "{commonappdata}\Ableton\Live 10 Standard\Resources\MIDI Remote Scripts"; Check: StdCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\Ableton\Sensel_Morph"; DestDir: "{commonappdata}\Ableton\Live 10 Lite\Resources\MIDI Remote Scripts"; Check: LiteCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\Ableton\Project"; DestDir: "{userdocs}\Sensel Morph\Ableton Live Script Project"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Code]
 
