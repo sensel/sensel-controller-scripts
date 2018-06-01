@@ -1,0 +1,15 @@
+#! /bin/sh
+
+sudo chown -R $USER /Users/Shared/Sensel_Morph
+COUNTER=0
+find /Applications -maxdepth 1 -name 'Ableton Live 10*' | while read line; do
+    if [ "$COUNTER" -eq 0 ]
+    then
+      cd /
+      cp -r /Users/Shared/Sensel_Morph "$line/Contents/App-Resources/MIDI Remote Scripts/"
+      sudo chown -R $USER "$line/Contents/App-Resources/MIDI Remote Scripts/"
+    fi
+    COUNTER=$[$COUNTER +1]
+done
+
+rm -r /Users/Shared/Sensel_Morph
