@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Sensel Morph Ableton Remote Scripts"
-#define MyAppVersion "0.1"
+#define MyAppVersion "0.2"
 #define MyAppPublisher "Sensel, Inc."
 #define MyAppURL "http://www.sensel.com/"
 #define MyAppExeName "SenselMorph_LiveScripts.exe"
@@ -37,11 +37,11 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-Source: "..\..\Ableton\Sensel_Morph"; DestDir: "{commonappdata}\Ableton\Live 10 Trial\Resources\MIDI Remote Scripts"; Check: TrialCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\Ableton\Sensel_Morph"; DestDir: "{commonappdata}\Ableton\Live 10 Suite\Resources\MIDI Remote Scripts"; Check: SuiteCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\Ableton\Sensel_Morph"; DestDir: "{commonappdata}\Ableton\Live 10 Standard\Resources\MIDI Remote Scripts"; Check: StdCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\Ableton\Sensel_Morph"; DestDir: "{commonappdata}\Ableton\Live 10 Lite\Resources\MIDI Remote Scripts"; Check: LiteCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\Ableton\Project"; DestDir: "{userdocs}\Sensel Morph\Ableton Live Script Project"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\Ableton\Sensel_Morph\*"; DestDir: "{commonappdata}\Ableton\Live 10 Trial\Resources\MIDI Remote Scripts\Sensel_Morph"; Check: TrialCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\Ableton\Sensel_Morph\*"; DestDir: "{commonappdata}\Ableton\Live 10 Suite\Resources\MIDI Remote Scripts\Sensel_Morph"; Check: SuiteCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\Ableton\Sensel_Morph\*"; DestDir: "{commonappdata}\Ableton\Live 10 Standard\Resources\MIDI Remote Scripts\Sensel_Morph"; Check: StdCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\Ableton\Sensel_Morph\*"; DestDir: "{commonappdata}\Ableton\Live 10 Lite\Resources\MIDI Remote Scripts\Sensel_Morph"; Check: LiteCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\Ableton\Project\*"; DestDir: "{userdocs}\Sensel Morph\Ableton Live Script Project\Project"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Code]
 
