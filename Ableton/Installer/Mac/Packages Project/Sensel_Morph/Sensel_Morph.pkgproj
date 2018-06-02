@@ -382,9 +382,9 @@
 											<key>GID</key>
 											<integer>0</integer>
 											<key>PATH</key>
-											<string>/Users/Shared/Project</string>
+											<string>../../../../Project</string>
 											<key>PATH_TYPE</key>
-											<integer>0</integer>
+											<integer>3</integer>
 											<key>PERMISSIONS</key>
 											<integer>493</integer>
 											<key>TYPE</key>
@@ -398,9 +398,9 @@
 											<key>GID</key>
 											<integer>0</integer>
 											<key>PATH</key>
-											<string>/Users/Shared/Sensel_Morph</string>
+											<string>../../../../Sensel_Morph</string>
 											<key>PATH_TYPE</key>
-											<integer>0</integer>
+											<integer>3</integer>
 											<key>PERMISSIONS</key>
 											<integer>493</integer>
 											<key>TYPE</key>
@@ -503,7 +503,7 @@
 				<key>USE_HFS+_COMPRESSION</key>
 				<false/>
 				<key>VERSION</key>
-				<string>.991</string>
+				<string>.992</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
