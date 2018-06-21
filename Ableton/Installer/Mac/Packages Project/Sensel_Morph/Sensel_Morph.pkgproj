@@ -382,6 +382,22 @@
 											<key>GID</key>
 											<integer>0</integer>
 											<key>PATH</key>
+											<string>../../../../Overlays</string>
+											<key>PATH_TYPE</key>
+											<integer>3</integer>
+											<key>PERMISSIONS</key>
+											<integer>493</integer>
+											<key>TYPE</key>
+											<integer>3</integer>
+											<key>UID</key>
+											<integer>0</integer>
+										</dict>
+										<dict>
+											<key>CHILDREN</key>
+											<array/>
+											<key>GID</key>
+											<integer>0</integer>
+											<key>PATH</key>
 											<string>../../../../Project</string>
 											<key>PATH_TYPE</key>
 											<integer>3</integer>
@@ -503,7 +519,7 @@
 				<key>USE_HFS+_COMPRESSION</key>
 				<false/>
 				<key>VERSION</key>
-				<string>.992</string>
+				<string>0.3</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
