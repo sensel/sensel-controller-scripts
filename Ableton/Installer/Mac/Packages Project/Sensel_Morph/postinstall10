@@ -19,6 +19,8 @@ mkdir "Sensel Morph"
 mkdir "Sensel Morph/Ableton Live Script Project"
 cp -r "/Users/Shared/Project/" "Sensel Morph/Ableton Live Script Project"
 cp -r "/Users/Shared/Overlays/" "Sensel Morph/Overlay Maps"
+
+# set permissions for new folder
 sudo chown -R $USER "$HOME/Documents/Sensel Morph/"
 sudo chown -R $USER "$HOME/Documents/Sensel Morph/Ableton Live Script Project"
 sudo chown -R $USER "$HOME/Documents/Sensel Morph/Overlay Maps"
