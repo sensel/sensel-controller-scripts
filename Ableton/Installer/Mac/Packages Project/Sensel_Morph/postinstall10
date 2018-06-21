@@ -18,8 +18,10 @@ cd $HOME/Documents/
 mkdir "Sensel Morph"
 mkdir "Sensel Morph/Ableton Live Script Project"
 cp -r "/Users/Shared/Project/" "Sensel Morph/Ableton Live Script Project"
-cp -r "/Users/Shared/Overlays/" "Sensel Morph/Ableton Live Script Project"
-sudo chown -R $USER "Sensel Morph/Ableton Live Script Project"
+cp -r "/Users/Shared/Overlays/" "Sensel Morph/Overlay Maps"
+sudo chown -R $USER "$HOME/Documents/Sensel Morph/"
+sudo chown -R $USER "$HOME/Documents/Sensel Morph/Ableton Live Script Project"
+sudo chown -R $USER "$HOME/Documents/Sensel Morph/Overlay Maps"
 
 rm -r /Users/Shared/Sensel_Morph
 rm -r /Users/Shared/Project
