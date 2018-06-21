@@ -17,6 +17,7 @@ done
 cd $HOME/Documents/
 mkdir "Sensel Morph"
 mkdir "Sensel Morph/Ableton Live Script Project"
+mkdir "Sensel Morph/Overlay Maps"
 cp -r "/Users/Shared/Project/" "Sensel Morph/Ableton Live Script Project"
 cp -r "/Users/Shared/Overlays/" "Sensel Morph/Overlay Maps"
 
