@@ -204,6 +204,7 @@ function init()
 	setup_mixer();
 	setup_device();
 	setup_drumrack();
+	setup_scales();
 	setup_transport();
 	setup_tasks();
 	setup_usermodes();
@@ -263,9 +264,11 @@ function setup_controls()
 		button[i] = new Button(MORPH_BUTTONS[i], 'Button_'+i);
 	}
 	script['key'] = [];
+	script['keygrid'] = new Grid(13, 1, 'KeyGrid');
 	for (var i = 0; i< 13;i++)
 	{
 		key[i] = new Button(MORPH_KEYS[i], 'Key_'+i);
+		keygrid.add_control(i, 0, key[i]);
 	}
 	script['slider'] = [];
 	for (var i = 0; i<2; i++)
@@ -306,6 +309,13 @@ function setup_drumrack()
 	drumrack = new MorphDrumRackComponent('DrumRack');
 	post('drumrack offset:', drumrack._noteOffset._value);
 }
+
+function setup_scales()
+{
+	scales = new MorphScaleComponent('Scales');
+	post('scalse offset:', scales._noteOffset._value);
+}
+
 
 function setup_transport()
 {
@@ -352,11 +362,13 @@ function setup_modes()
 		transport._play.set_control(button[4]);
 		transport._record.set_control(button[6]);
 		drumrack.assign_grid(grid);
+		scales.assign_grid(keygrid);
 		mainPage.active = true;
 	}
 	mainPage.exit_mode = function()
 	{
 		drumrack.assign_grid();
+		scales.assign_grid();
 		mixer.set_nav_controls();
 		mixer.selectedstrip()._send[0].set_control();
 		mixer.selectedstrip()._send[1].set_control();
@@ -373,21 +385,20 @@ function setup_modes()
 		{
 			post('is_shifted');
 			drumrack.assign_grid();
+			scales.assign_grid();
 			//mainPage.set_shift_button(button[7]);
 			mixer.selectedstrip()._send[0].set_control();
 			mixer.selectedstrip()._send[1].set_control();
 			session.assign_grid(grid);
 			session._navLt.set_control(button[0]);
 			session._navRt.set_control(button[1]);
-			//drumrack._navUp.set_control(key[0]);
-			//drumrack._navDn.set_control(key[1]);
 			drumrack._noteOffset.set_inc_dec_buttons(key[1], key[0]);
+			scales._noteOffset.set_inc_dec_buttons(key[12], key[11]);
 		}
 		else
 		{
-			//drumrack._navUp.set_control();
-			//drumrack._navDn.set_control();
 			drumrack._noteOffset.set_inc_dec_buttons();
+			scales._noteOffset.set_inc_dec_buttons();
 			session._navLt.set_control();
 			session._navRt.set_control();
 			session.assign_grid();
@@ -581,7 +592,7 @@ function MorphScaleComponent(name, _colors)
 
 	this._vertOffset = new OffsetComponent(this._name + '_Vertical_Offset', 0, 119, 4, self._request_update, colors.MAGENTA);
 	this._scaleOffset = new OffsetComponent(this._name + '_Scale_Offset', 0, SCALES.length, 3, self._request_update, colors.BLUE);
-	this._noteOffset = new OffsetComponent(this._name + '_Note_Offset', 0, 119, 36, self._request_update, colors.CYAN);
+	this._noteOffset = new OffsetComponent(this._name + '_Note_Offset', 0, 119, 36, self._request_update, colors.CYAN, colors.OFF, 12);
 	this._octaveOffset = new OffsetComponent(this._name + '_Note_Offset', 0, 119, 36, self._request_update, colors.YELLOW, colors.OFF, 12);
 
 
