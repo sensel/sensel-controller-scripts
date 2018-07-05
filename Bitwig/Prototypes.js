@@ -2047,7 +2047,8 @@ function ChannelStripComponent(name, num, track, num_sends, _colors)
 	this._num = num;
 	this._num_sends = num_sends;
 	this._track = track;
-	this._device = track.getPrimaryDevice();
+	//this._device = track.getPrimaryDevice();  //incompatible with API 2+
+	this._device = track.createCursorDevice();
 	this._eqdevice;
 
 	this._colors = _colors||{'muteColor': colors.YELLOW, 
@@ -3948,6 +3949,9 @@ function TransportComponent(name, transport, _colors)
 	this._clipautowrite = new ToggledParameter('clipautowrite_listener', {javaObj:transport, action:'toggleWriteClipLauncherAutomation', onValue:colors.BLUE});
 
 	this._loop = new ToggledParameter('loop_listener', {javaObj:transport, action:'toggleLoop', monitor:'addIsLoopActiveObserver', onValue:colors.YELLOW});
+
+	this._crossfader = new RangedParameter(this._name + '_Crossfader', {num:0, javaObj:transport.crossfade(), range:128});
+	//this._crossfade._Callback = function(obj)(if(obj._value){
 
 	this.update_tempo = function(obj)
 	{

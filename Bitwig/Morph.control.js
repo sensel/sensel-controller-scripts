@@ -1,7 +1,10 @@
 
 //const QUERYSURFACE = 'F0 7E 7F 06 01 F7';
 
-loadAPI(1);
+//loadAPI(1);
+//loadAPI(4);
+loadAPI(5);
+host.setShouldFailOnDeprecatedUse(false);
  
 host.defineController("Sensel", "Morph", "1.0", "6cb72762-5cb1-11e8-9c2d-fa7ae01bbebc");
 
@@ -26,7 +29,7 @@ var script = this;
 var session;
 
 var DEBUG = true;	//post() doesn't work without this
-var VERSION = '1.0';
+var VERSION = '1 .0';
 var VERBOSE = false;
 
 load("Prototypes.js");
@@ -300,7 +303,7 @@ function setup_mixer()
 
 function setup_device()
 {
-	device = new DeviceComponent('Device', 8, cursorDevice);
+	device = new MorphDeviceComponent('Device', 8, cursorDevice);
 	device._mode.set_value(0);
 }
 
@@ -357,10 +360,11 @@ function setup_modes()
 		mixer.set_nav_controls(button[0], button[1]);
 		mixer.selectedstrip()._send[0].set_control(pressure[0]);
 		mixer.selectedstrip()._send[1].set_control(pressure[1]);
-		device.set_shared_controls(dial);
+		device.set_parameter_controls(dial);
 		transport._stop.set_control(button[5]);
 		transport._play.set_control(button[4]);
 		transport._record.set_control(button[6]);
+		transport._crossfader.set_control(slider[1]);
 		drumrack.assign_grid(grid);
 		scales.assign_grid(keygrid);
 		mainPage.active = true;
@@ -376,6 +380,7 @@ function setup_modes()
 		transport._stop.set_control();
 		transport._play.set_control();
 		transport._record.set_control();
+		transport._crossfader.set_control()
 		post('mainPage exited');
 	}
 	mainPage.update_mode = function()
@@ -636,4 +641,148 @@ MorphScaleComponent.prototype.set_verbose = function(val)
 }
 
 
+function MorphDeviceComponent(name, size, Device)
+{
+	var self = this;
+	this._name = name;
+	this._size = size;
+	this._device = Device;
+	this._remote_controls = Device.createCursorRemoteControlsPage(size);
+	//this._shared_controls = [];
+	//this._macro_controls = [];
+	this._parameter_controls = [];
+	this._parameter = [];
+	this._macro = [];
+	for(var i=0;i<size;i++)
+	{
+		this._parameter[i] = new RangedParameter(this._name + '_Parameter_' + i, {num:i, javaObj:this._remote_controls.getParameter(i), range:128});
+		/*this._parameter[i]._javaObj.setIndication(true);
+		this._parameter[i].displayed_name = new Parameter('Parameter_' + i, {num:i, javaObj:this._device.getParameter(i)});
+		this._parameter[i].displayed_name._javaObj.addNameObserver(10, 'None', this._parameter[i].displayed_name.receive);
+		this._parameter[i].displayed_value = new Parameter('Value_'+i, {num:i, javaObj:this._device.getParameter(i)});
+		this._parameter[i].displayed_value._javaObj.addValueDisplayObserver(10, 'None', this._parameter[i].displayed_value.receive);*/
+		//this._macro[i] = new RangedParameter(this._name + '_Macro_' + i, {num:i, javaObj:this._device.getMacro(i).getAmount(), range:128});
+	}
+
+	/*this._navUp = new Parameter(this._name + '_NavUp', {num:0, value:1, javaObj:this._device, action:'nextParameterPage', monitor:'addNextParameterPageEnabledObserver', onValue:colors.CYAN});
+	this._navDn = new Parameter(this._name + '_NavDown', {num:1, value:1, javaObj:this._device, action:'previousParameterPage', monitor:'addPreviousParameterPageEnabledObserver', onValue:colors.CYAN});
+	this._navLt = new Parameter(this._name + '_NavLeft', {num:2, value:1, javaObj:this._device, action:'selectNext', monitor:'addCanSelectNextObserver', onValue:colors.BLUE});
+	this._navRt = new Parameter(this._name + '_NavRight', {num:3, value:1, javaObj:this._device, action:'selectPrevious', monitor:'addCanSelectPreviousObserver', onValue:colors.BLUE});
+	this._enabled = new ToggledParameter(this._name + '_Enabled', {javaObj:this._device, action:'toggleEnabledState', monitor:'addIsEnabledObserver', onValue:colors.RED});*/
+	this._mode = new ToggledParameter(this._name + '_Mode', {onValue:colors.BLUE, offValue:colors.CYAN});
+
+	this._device_name = new Parameter(this._name + 'Device ', {javaObj:this._device});
+	this._device_name._javaObj.addNameObserver(10, 'None', this._device_name.receive);
+
+	/*this._selected_page = new Parameter(this._name + '_Page', {javaObj:this._device});
+	this._selected_page._javaObj.addSelectedPageObserver(0, this._selected_page.receive);
+	this._page_names = new ArrayParameter(this._name + '_Page_Names', {javaObj:this._device, value:[]});
+	this._page_names._javaObj.addPageNamesObserver(this._page_names.receive);
+	this._bank_name = new Parameter(this._name + 'Bank ', {value:'None'});
+	this._on_selected_page_changed = function(obj)
+	{
+		if((obj._value > -1)&&(self._page_names._value instanceof Array)&&(self._page_names._value.length > obj._value))
+		{
+			self._bank_name.receive(self._page_names._value[obj._value]);
+		}
+	}
+	this._selected_page.add_listener(this._on_selected_page_changed);*/
+
+	/*this._nextPreset = new Parameter(this._name + '_Next_Preset', {javaObj:this._device, action:'switchToNextPreset'});
+	this._previousPreset = new Parameter(this._name + '_Previous_Preset', {javaObj:this._device, action:'switchToPreviousPreset'});
+	this._preset_creators = new ArrayParameter(this._name + '_Preset_Creators', {javaObj:this._device, value:[], monitor:'addPresetCreatorsObserver'});
+	this._preset_creator = new Parameter(this._name + '_Preset_Creator', {javaObj:this._device, monitor_text:'addPresetCreatorObserver'});	
+	this._preset_name = new Parameter(this._name + '_Preset_Name', {javaObj:this._device, monitor_text:'addPresetNameObserver'});*/
+
+
+	//this._preset_creators.add_listener(function(obj){post('------preset_creators:', obj._value)});
+	//this._selected_page.add_listener(function(obj){post('------selected_page:', obj._value)});
+
+	this._update = function()
+	{
+		for(var i in self._parameter)
+		{
+			self._parameter[i].set_control();
+			self._parameter[i]._javaObj.setIndication(false);
+			//self._macro[i].set_control();
+			//self._macro[i]._javaObj.setIndication(false);
+		}
+		if(self._size == self._parameter_controls.length)
+		{
+			for(var i=0;i<self._size;i++)
+			{
+				if(self._parameter_controls[i] instanceof Control)
+				{
+					self._parameter[i].set_control(self._parameter_controls[i]);
+					self._parameter[i]._javaObj.setIndication(true);
+				}
+			}
+		}
+	}
+
+	this._mode.add_listener(this._update);
+
+	/*this._report = function(val)
+	{
+		post('report!', val);
+	}
+	this._report2 = function(val)
+	{
+		post('report2!', val);
+	}
+	this._device.addSelectedPageObserver(-1, this._report);
+	this._device.addPageNamesObserver(this._report2);*/
+}
+
+MorphDeviceComponent.prototype.set_nav_buttons = function(button0, button1, button2, button3)
+{
+	this._navUp.set_control(button0);
+	this._navDn.set_control(button1);
+	this._navLt.set_control(button2);
+	this._navRt.set_control(button3);
+	if(button0 instanceof Button){button0.send(colors.CYAN);}
+	if(button1 instanceof Button){button1.send(colors.CYAN);}
+	if(button2 instanceof Button){button2.send(colors.BLUE);}
+	if(button3 instanceof Button){button3.send(colors.BLUE);}
+}
+
+MorphDeviceComponent.prototype.set_shared_controls = function(controls)
+{
+	var controls = (controls instanceof Array) ? controls : [];
+	this._shared_controls = controls;
+	this._update();
+}
+
+MorphDeviceComponent.prototype.set_parameter_controls = function(controls)
+{
+	var controls = (controls instanceof Array) ? controls : [];
+	this._parameter_controls = controls;
+	this._update();
+}
+
+MorphDeviceComponent.prototype.set_macro_controls = function(controls)
+{
+	var controls = (controls instanceof Array) ? controls : [];
+	this._macro_controls = controls;
+	this._update();
+}
+
+MorphDeviceComponent.prototype.set_verbose = function(val)
+{
+	val = val > 0;
+	for(var i in this._parameter)
+	{
+		this._parameter[i]._display_value = val;
+	}
+	for(var i in this._macro)
+	{
+		this._macro[i]._display_value = val;
+	}
+	this._navUp._display_value = val;
+	this._navDn._display_value = val;
+	this._navLt._display_value = val;
+	this._navRt._display_value = val;
+	this._enabled._display_value = val;
+	this._mode._display_value = val;
+}
 
