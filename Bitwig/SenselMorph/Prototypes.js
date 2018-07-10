@@ -461,6 +461,26 @@ Control.prototype.reset = function()
 }
 
 
+function MPEControl(identifier, name)
+{
+	MPEControl.call( this, name );
+	var self = this;
+	this._mpe_channel = 1;
+	this.receive = function(value)
+	{
+		if(self._enabled)
+		{
+			self._value = value;
+			self.notify();
+		}
+	}
+}
+
+MPEControl.prototype = new Control();
+
+MPEControl.prototype.constructor = MPEControl;
+
+
 function Button(identifier, name)
 {
 	Control.call( this, identifier, name );

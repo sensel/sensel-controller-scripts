@@ -143,6 +143,8 @@ function MorphDrumRackComponent(name, _color)
 	this._noteOffset.add_listener(self._noteOffsetCallback);
 	//this._octaveOffset.add_listener(self._noteOffsetCallback);
 
+	this._noteOffset._scroll_hold = false;
+
 	//this._drumPadBank.addChannelScrollPositionObserver(this._noteOffsetCallback, -1);
 
 	this._shift = new ToggledParameter(this._name + '_Shift');
@@ -223,6 +225,7 @@ function init()
 function initialize_noteInput()
 {
 	noteInput = host.getMidiInPort(0).createNoteInput("Morph", "8?????", "9?????", "D?????", "E?????");
+	noteInput.setUseExpressiveMidi(true, 0, 24);
 	noteInput.setShouldConsumeEvents(false);
 
 }
@@ -288,7 +291,10 @@ function setup_controls()
 	{
 		pressure[i] = new PadPressure(MORPH_SEND_PRESSURE[i], 'Pressure_'+i);
 	}
+
+
 	post('setup_controls successful');
+
 }
 
 function setup_session()
@@ -310,15 +316,13 @@ function setup_device()
 function setup_drumrack()
 {
 	drumrack = new MorphDrumRackComponent('DrumRack');
-	post('drumrack offset:', drumrack._noteOffset._value);
 }
 
 function setup_scales()
 {
 	scales = new MorphScaleComponent('Scales');
-	post('scalse offset:', scales._noteOffset._value);
+	scales._scaleOffset.set_value(1);
 }
-
 
 function setup_transport()
 {
@@ -332,6 +336,7 @@ function setup_notifications()
 	notifier.add_subject(device._device_name, 'Device', undefined, 6, 'Device');
 	notifier.add_subject(device._bank_name, 'Bank', undefined, 6, 'Device');
 	notifier.add_subject(drumrack._noteOffset, 'DrumOffset', undefined, 6, 'Main');
+	notifier.add_subject(scales._noteOffset, 'ScaleOffset', undefined, 6, 'Main');
 	notifier.add_subject(MainModes, 'Mode', ['Main', 'Shift'], 2);
 }
 
@@ -472,7 +477,6 @@ function exit()
 	//resetAll();
 }
 
-
 function onMidi(status, data1, data2)
 {
 	//printMidi(status, data1, data2)
@@ -483,12 +487,12 @@ function onMidi(status, data1, data2)
 	}
 	else if (isNoteOn(status)) //&& MIDIChannel(status) == alias_channel)
 	{
-		//post('NOTE: ' + status + ' ' + data1 + ' ' + data2);
+		post('NOTE: ' + status + ' ' + data1 + ' ' + data2);
 		NOTE_OBJECTS[data1].receive(data2);
 	}
 	else if (isNoteOff(status)) //&& MIDIChannel(status) == alias_channel)
 	{
-		//post('NOTE: ' + status + ' ' + data1 + ' ' + data2);
+		post('NOTEOFF: ' + status + ' ' + data1 + ' ' + data2);
 		NOTE_OBJECTS[data1].receive(data2);
 	}
 }
@@ -597,9 +601,10 @@ function MorphScaleComponent(name, _colors)
 
 	this._vertOffset = new OffsetComponent(this._name + '_Vertical_Offset', 0, 119, 4, self._request_update, colors.MAGENTA);
 	this._scaleOffset = new OffsetComponent(this._name + '_Scale_Offset', 0, SCALES.length, 3, self._request_update, colors.BLUE);
-	this._noteOffset = new OffsetComponent(this._name + '_Note_Offset', 0, 119, 36, self._request_update, colors.CYAN, colors.OFF, 12);
-	this._octaveOffset = new OffsetComponent(this._name + '_Note_Offset', 0, 119, 36, self._request_update, colors.YELLOW, colors.OFF, 12);
-
+	this._noteOffset = new OffsetComponent(this._name + '_Note_Offset', 0, 108, 36, self._request_update, colors.CYAN, colors.OFF, 12);
+	this._octaveOffset = new OffsetComponent(this._name + '_Note_Offset', 0, 108, 36, self._request_update, colors.YELLOW, colors.OFF, 12);
+	this._octaveOffset._scroll_hold = false;
+	this._noteOffset._scroll_hold = false;
 
 	this._noteOffset.add_listener(self._noteOffsetCallback);
 	this._octaveOffset.add_listener(self._noteOffsetCallback);
