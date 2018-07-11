@@ -1,8 +1,3 @@
-
-//const QUERYSURFACE = 'F0 7E 7F 06 01 F7';
-
-//loadAPI(1);
-//loadAPI(4);
 loadAPI(5);
 host.setShouldFailOnDeprecatedUse(false);
  
@@ -10,19 +5,14 @@ host.defineController("Sensel", "MorphMPE", "1.0", "aa49a7eb-d170-4b07-8a75-2572
 
 var PRODUCT = "1"; 
 
-//var LIVIDRESPONSE = "F0 7E ?? 06 02 00 01 61 01 00 "+PRODUCT+" 00 ?? ?? ?? ?? F7";
-                     //F0 7E 00 06 02 00 01 61 01 00 10          00 05 00 01 00 F7
-//host.defineSysexDiscovery("F0 7E 7F 06 01 F7", LIVIDRESPONSE);
 host.defineMidiPorts(1, 1);
 host.addDeviceNameBasedDiscoveryPair(["Sensel Morph"], ["Sensel Morph"]);
 host.addDeviceNameBasedDiscoveryPair(["Sensel Morph"], ["Sensel Morph"]);
-
 
 /*for ( var m = 1; m < 9; m++)
 {
 	host.addDeviceNameBasedDiscoveryPair(["Controls" + m + " (Morph)"], ["Controls" + m + " (Morph)"]);
 }*/
-
 
 
 var script = this;
@@ -143,7 +133,7 @@ function MorphDrumRackComponent(name, _color)
 	this._noteOffset.add_listener(self._noteOffsetCallback);
 	//this._octaveOffset.add_listener(self._noteOffsetCallback);
 
-	this._noteOffset._scroll_hold = false;
+	//this._noteOffset._scroll_hold = false;
 
 	//this._drumPadBank.addChannelScrollPositionObserver(this._noteOffsetCallback, -1);
 
@@ -182,337 +172,6 @@ MorphDrumRackComponent.prototype.set_verbose = function(val)
 	this._octaveOffset._display_value = val;
 }
 
-
-function init()
-{
-
-	////////////////////////////////////////////////////////////////////////////////
-	application = host.createApplication();
-	cursorDevice = host.createCursorDevice();
-	cursorTrack = host.createCursorTrack(6, 1);
-	masterTrack = host.createMasterTrack(8);
-	transport = host.createTransport();
-	trackBank = host.createMainTrackBank(8, 6, 4);
-	returnBank = host.createEffectTrackBank(6, 4);
-	////////////////////////////////////////////////////////////////////////////////
-	
-	post('Morph script loading ------------------------------------------------');
-
-	host.getMidiInPort(0).setMidiCallback(onMidi);
-	host.getMidiInPort(0).setSysexCallback(onSysex);
-	initialize_noteInput();
-	initialize_prototypes();
-	initialize_surface();
-	setup_controls();
-	resetAll();
-	setup_session();
-	setup_mixer();
-	setup_device();
-	setup_drumrack();
-	setup_scales();
-	setup_transport();
-	setup_tasks();
-	setup_usermodes();
-	setup_modes();
-	setup_notifications();
-	setup_listeners();
-	setupTests();
-	MainModes.change_mode(0, true);
-	post('Morph script loaded! ------------------------------------------------');
-	notifier.show_message('Morph Script version ' + VERSION +' loaded.');
-}
-
-function initialize_noteInput()
-{
-	noteInput = host.getMidiInPort(0).createNoteInput("Morph", "8?????", "9?????", "D?????", "E?????");
-	noteInput.setUseExpressiveMidi(true, 0, 24);
-	noteInput.setShouldConsumeEvents(false);
-
-}
-
-function initialize_surface()
-{
-
-}
-
-
-var MAIN_CHANNEL = 1;
-var KEY_CHANNEL = 2;
-var DRUM_TRANSLATION_CHANNEL = 9;
-var USER_CHANNEL = 14;
-var PIANO_CHANNEL = 3;
-var MORPH_PADS = [[48, 49, 50, 51], [44, 45, 46, 47], [40, 41, 42, 43], [36, 37, 38, 39]];
-var MORPH_KEYS = [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72];
-var MORPH_BUTTONS = [1, 2, 3, 4, 5, 6, 7, 8];
-var MORPH_SLIDERS = [17, 18];
-var MORPH_DIALS = [9, 10, 11, 12, 13, 14, 15, 16];
-var MORPH_SEND_PRESSURE = [19, 20];
-var PIANO_BUTTONS = [9, 10, 11, 12];
-var PIANO_KEYS = [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84];
-//var CHANNELS = ['Ch. 2', 'Ch. 3', 'Ch. 4', 'Ch. 5', 'Ch. 6', 'Ch. 7', 'Ch. 8', 'Ch. 9', 'Ch. 10', 'Ch. 11', 'Ch. 12', 'Ch. 13', 'Ch. 14'];
-
-function setup_controls()
-{
-	script['pad'] = [];
-	script['grid'] = new Grid(4, 4, 'Grid');
-	for ( var i = 0; i< 4; i++)
-	{
-		pad[i] = [];
-		for (var j = 0; j< 4; j++)
-		{
-			pad[i][j] = new Button(MORPH_PADS[j][i], 'Pad_'+i+'_'+j);
-			grid.add_control(i, j, pad[i][j]);
-		}
-	}
-	script['button'] = [];
-	for (var i = 0; i< 8; i++)
-	{
-		button[i] = new Button(MORPH_BUTTONS[i], 'Button_'+i);
-	}
-	script['key'] = [];
-	script['keygrid'] = new Grid(13, 1, 'KeyGrid');
-	for (var i = 0; i< 13;i++)
-	{
-		key[i] = new Button(MORPH_KEYS[i], 'Key_'+i);
-		keygrid.add_control(i, 0, key[i]);
-	}
-	script['slider'] = [];
-	for (var i = 0; i<2; i++)
-	{
-		slider[i] = new Slider(MORPH_SLIDERS[i], 'Slider_'+i);
-	}
-	script['dial'] = [];
-	for (var i = 0; i < 8; i++)
-	{
-		dial[i] = new Slider(MORPH_DIALS[i], 'Dial_'+i);
-	}
-	script['pressure'] = [];
-	for (var i = 0; i < 2; i++)
-	{
-		pressure[i] = new PadPressure(MORPH_SEND_PRESSURE[i], 'Pressure_'+i);
-	}
-
-
-	post('setup_controls successful');
-
-}
-
-function setup_session()
-{
-	session = new SessionComponent('Session', 4, 4, trackBank);
-}
-
-function setup_mixer()
-{
-	mixer = new MixerComponent('Mixer', 4, 4, trackBank, returnBank, cursorTrack, masterTrack);
-}
-
-function setup_device()
-{
-	device = new MorphDeviceComponent('Device', 8, cursorDevice);
-	device._mode.set_value(0);
-}
-
-function setup_drumrack()
-{
-	drumrack = new MorphDrumRackComponent('DrumRack');
-}
-
-function setup_scales()
-{
-	scales = new MorphScaleComponent('Scales');
-	scales._scaleOffset.set_value(1);
-}
-
-function setup_transport()
-{
-	transport = new TransportComponent('Transport', host.createTransport());
-}
-
-function setup_notifications()
-{
-	notifier = new NotificationDisplayComponent();
-	notifier.add_subject(mixer._selectedstrip._track_name, 'Selected Track', undefined, 8, 'Main');
-	notifier.add_subject(device._device_name, 'Device', undefined, 6, 'Device');
-	notifier.add_subject(device._bank_name, 'Bank', undefined, 6, 'Device');
-	notifier.add_subject(drumrack._noteOffset, 'DrumOffset', undefined, 6, 'Main');
-	notifier.add_subject(scales._noteOffset, 'ScaleOffset', undefined, 6, 'Main');
-	notifier.add_subject(MainModes, 'Mode', ['Main', 'Shift'], 2);
-}
-
-function setup_tasks()
-{
-	tasks = new TaskServer(script, 100);
-}
-
-function setup_usermodes()
-{
-	user1Input = host.getMidiInPort(0).createNoteInput("MorphUser1", "80????", "90????", "D0????", "E0????");
-	userbank1 = new UserBankComponent('UserBank1', 48, user1Input);
-	user1Input.setShouldConsumeEvents(false);
-}
-
-function setup_modes()
-{
-
-
-	//Page 0: Mute and Solos
-	mainPage = new Page('MainPage');
-	mainPage.enter_mode = function()
-	{
-		post('mainPage entered');
-		//mainPage.set_shift_button(button[7]);
-		mixer.set_nav_controls(button[0], button[1]);
-		mixer.selectedstrip()._send[0].set_control(pressure[0]);
-		mixer.selectedstrip()._send[1].set_control(pressure[1]);
-		device.set_parameter_controls(dial);
-		transport._stop.set_control(button[5]);
-		transport._play.set_control(button[4]);
-		transport._record.set_control(button[6]);
-		transport._crossfader.set_control(slider[1]);
-		drumrack.assign_grid(grid);
-		scales.assign_grid(keygrid);
-		mainPage.active = true;
-	}
-	mainPage.exit_mode = function()
-	{
-		drumrack.assign_grid();
-		scales.assign_grid();
-		mixer.set_nav_controls();
-		mixer.selectedstrip()._send[0].set_control();
-		mixer.selectedstrip()._send[1].set_control();
-		device.set_parameter_controls();
-		transport._stop.set_control();
-		transport._play.set_control();
-		transport._record.set_control();
-		transport._crossfader.set_control()
-		post('mainPage exited');
-	}
-	mainPage.update_mode = function()
-	{
-		post('mainPage updated');
-		if(mainPage._shifted)
-		{
-			post('is_shifted');
-			drumrack.assign_grid();
-			scales.assign_grid();
-			//mainPage.set_shift_button(button[7]);
-			mixer.selectedstrip()._send[0].set_control();
-			mixer.selectedstrip()._send[1].set_control();
-			session.assign_grid(grid);
-			session._navLt.set_control(button[0]);
-			session._navRt.set_control(button[1]);
-			drumrack._noteOffset.set_inc_dec_buttons(key[1], key[0]);
-			scales._noteOffset.set_inc_dec_buttons(key[12], key[11]);
-		}
-		else
-		{
-			drumrack._noteOffset.set_inc_dec_buttons();
-			scales._noteOffset.set_inc_dec_buttons();
-			session._navLt.set_control();
-			session._navRt.set_control();
-			session.assign_grid();
-			mainPage.enter_mode();
-		}
-	}
-
-	//Page 1: altPage
-	altPage = new Page('altPage');
-	altPage.enter_mode = function()
-	{
-		post('altPage entered');
-		altPage.active = true;
-	}
-	altPage.exit_mode = function()
-	{
-		altPage.active = false;
-		post('altPage exited');
-	}
-	altPage.update_mode = function()
-	{
-		post('altPage updated');
-		if(altPage._shifted)
-		{
-		}
-		else
-		{
-			altPage.enter_mode();
-		}
-	}
-
-	script["MainModes"] = new PageStack(2, "Main Modes");
-	mainPage.set_shift_button(button[7]);
-
-	MainModes.add_mode(0, mainPage);
-	MainModes.add_mode(1, altPage);
-	//MainModes.set_mode_cycle_button(button[7]);
-
-}
-
-function change_channel(num)
-{
-	//post('channel is:', num);
-	ds1_channel = num;
-	for(var i in NOTE_OBJECTS)
-	{
-		NOTE_OBJECTS[i]._channel = num;
-	}
-	for(var i in CC_OBJECTS)
-	{
-		CC_OBJECTS[i]._channel = num;
-	}
-}
-
-function setup_fixed_controls()
-{
-}
-
-function setup_listeners()
-{
-	//key[0].add_listener(function(obj){post('key[0]._value:', obj._value);});
-}
-
-function exit()
-{
-	//resetAll();
-}
-
-function onMidi(status, data1, data2)
-{
-	//printMidi(status, data1, data2)
-	if (isChannelController(status)) //&& MIDIChannel(status) == alias_channel)   //removing status check to include MasterFader
-	{
-		//post('CC: ' + status + ' ' + data1 + ' ' + data2, CC_OBJECTS[data1]._name);
-		CC_OBJECTS[data1].receive(data2);
-	}
-	else if (isNoteOn(status)) //&& MIDIChannel(status) == alias_channel)
-	{
-		post('NOTE: ' + status + ' ' + data1 + ' ' + data2);
-		NOTE_OBJECTS[data1].receive(data2);
-	}
-	else if (isNoteOff(status)) //&& MIDIChannel(status) == alias_channel)
-	{
-		post('NOTEOFF: ' + status + ' ' + data1 + ' ' + data2);
-		NOTE_OBJECTS[data1].receive(data2);
-	}
-}
-
-function onSysex(data)
-{
-	//printSysex(data);
-}
-
-function display_mode(){}
-
-function setupTests()
-{
-	//tasks.addTask(function(){post('dial[0]._value:', dial[0]._value);}, undefined, 1, true, 'dial_test');
-}
-
-
-
-/////////////////////////////////////////////////////////////////////////////
-//Container that holds a grid and assigns it to specific note values for triggering an Instrument
 
 function MorphScaleComponent(name, _colors)
 {
@@ -578,6 +237,7 @@ function MorphScaleComponent(name, _colors)
 					var button = self._grid.get_button(column, row);
 					if(!select_only){button.set_translation(note%127);}
 					else{button._translation = note%127}  //you slimy bastard....
+					//post('setting scale trans:', button._name, button._translation)
 				}
 			}
 		}
@@ -594,20 +254,21 @@ function MorphScaleComponent(name, _colors)
 
 	this._noteOffsetCallback = function(obj)
 	{
+		post('_noteOffsetCallback:', obj, obj._value);
 		//self._flushNotes();
-		self._octaveOffset._value = obj._value;
+		//self._octaveOffset._value = obj._value;
 		self._noteOffset._value = obj._value;
 	}
 
 	this._vertOffset = new OffsetComponent(this._name + '_Vertical_Offset', 0, 119, 4, self._request_update, colors.MAGENTA);
 	this._scaleOffset = new OffsetComponent(this._name + '_Scale_Offset', 0, SCALES.length, 3, self._request_update, colors.BLUE);
 	this._noteOffset = new OffsetComponent(this._name + '_Note_Offset', 0, 108, 36, self._request_update, colors.CYAN, colors.OFF, 12);
-	this._octaveOffset = new OffsetComponent(this._name + '_Note_Offset', 0, 108, 36, self._request_update, colors.YELLOW, colors.OFF, 12);
-	this._octaveOffset._scroll_hold = false;
-	this._noteOffset._scroll_hold = false;
+	//this._octaveOffset = new OffsetComponent(this._name + '_Note_Offset', 0, 108, 36, self._request_update, colors.YELLOW, colors.OFF, 12);
+	//this._octaveOffset._scroll_hold = false;
+	//this._noteOffset._scroll_hold = false;
 
 	this._noteOffset.add_listener(self._noteOffsetCallback);
-	this._octaveOffset.add_listener(self._noteOffsetCallback);
+	//this._octaveOffset.add_listener(self._noteOffsetCallback);
 
 	this._shift = new ToggledParameter(this._name + '_Shift');
 	this._shift.add_listener(this._update);
@@ -790,4 +451,471 @@ MorphDeviceComponent.prototype.set_verbose = function(val)
 	this._enabled._display_value = val;
 	this._mode._display_value = val;
 }
+
+
+function init()
+{
+
+	////////////////////////////////////////////////////////////////////////////////
+	application = host.createApplication();
+	cursorDevice = host.createCursorDevice();
+	cursorTrack = host.createCursorTrack(6, 1);
+	masterTrack = host.createMasterTrack(8);
+	transport = host.createTransport();
+	trackBank = host.createMainTrackBank(8, 6, 4);
+	returnBank = host.createEffectTrackBank(6, 4);
+	////////////////////////////////////////////////////////////////////////////////
+	
+	post('Morph script loading ------------------------------------------------');
+
+	host.getMidiInPort(0).setMidiCallback(onMidi);
+	host.getMidiInPort(0).setSysexCallback(onSysex);
+	initialize_noteInput();
+	initialize_prototypes();
+	initialize_surface();
+	setup_controls();
+	resetAll();
+	setup_session();
+	setup_piano_session();
+	setup_mixer();
+	setup_device();
+	setup_drumrack();
+	setup_scales();
+	setup_pianoscales();
+	setup_transport();
+	setup_tasks();
+	setup_usermodes();
+	setup_modes();
+	setup_notifications();
+	setup_listeners();
+	setupTests();
+	MainModes.change_mode(1, true);
+	post('Morph script loaded! ------------------------------------------------');
+	notifier.show_message('Morph Script version ' + VERSION +' loaded.');
+}
+
+function initialize_noteInput()
+{
+	noteInput = host.getMidiInPort(0).createNoteInput("Morph", "8?????", "9?????", "D?????", "E?????");
+	noteInput.setUseExpressiveMidi(true, 0, 24);
+	noteInput.setShouldConsumeEvents(false);
+
+}
+
+function initialize_surface()
+{
+
+}
+
+
+var MAIN_CHANNEL = 1;
+var KEY_CHANNEL = 2;
+var DRUM_TRANSLATION_CHANNEL = 9;
+var USER_CHANNEL = 14;
+var PIANO_CHANNEL = 3;
+var MORPH_PADS = [[48, 49, 50, 51], [44, 45, 46, 47], [40, 41, 42, 43], [36, 37, 38, 39]];
+var MORPH_KEYS = [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72];
+var MORPH_BUTTONS = [1, 2, 3, 4, 5, 6, 7, 8];
+var MORPH_SLIDERS = [17, 18];
+var MORPH_DIALS = [9, 10, 11, 12, 13, 14, 15, 16];
+var MORPH_SEND_PRESSURE = [19, 20];
+var MORPH_PIANOBUTTONS = [9, 10, 11, 12];
+var MORPH_PIANOKEYS = [84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108];
+
+function setup_controls()
+{
+	script['pad'] = [];
+	script['grid'] = new Grid(4, 4, 'Grid');
+	for ( var i = 0; i< 4; i++)
+	{
+		pad[i] = [];
+		for (var j = 0; j< 4; j++)
+		{
+			pad[i][j] = new Button(MORPH_PADS[j][i], 'Pad_'+i+'_'+j);
+			grid.add_control(i, j, pad[i][j]);
+		}
+	}
+	script['button'] = [];
+	for (var i = 0; i< 8; i++)
+	{
+		button[i] = new Button(MORPH_BUTTONS[i], 'Button_'+i);
+	}
+	script['key'] = [];
+	script['keygrid'] = new Grid(13, 1, 'KeyGrid');
+	for (var i = 0; i< 13;i++)
+	{
+		key[i] = new Button(MORPH_KEYS[i], 'Key_'+i);
+		keygrid.add_control(i, 0, key[i]);
+	}
+	script['slider'] = [];
+	for (var i = 0; i<2; i++)
+	{
+		slider[i] = new Slider(MORPH_SLIDERS[i], 'Slider_'+i);
+	}
+	script['dial'] = [];
+	for (var i = 0; i < 8; i++)
+	{
+		dial[i] = new Slider(MORPH_DIALS[i], 'Dial_'+i);
+	}
+	script['pressure'] = [];
+	for (var i = 0; i < 2; i++)
+	{
+		pressure[i] = new PadPressure(MORPH_SEND_PRESSURE[i], 'Pressure_'+i);
+	}
+	script['pianobutton'] = [];
+	for (var i = 0; i < 4; i++)
+	{
+		pianobutton[i] = new Button(MORPH_PIANOBUTTONS[i], 'PianoButton_'+i);
+	}
+	script['pianokey'] = [];
+	script['pianogrid'] = new Grid(25, 1, 'PianoKeyGrid');
+	for (var i = 0; i < 25; i++)
+	{
+		pianokey[i] = new Button(MORPH_PIANOKEYS[i], 'PianoKey_'+i);
+		pianogrid.add_control(i, 0, pianokey[i]);
+	}
+
+	post('setup_controls successful');
+
+}
+
+function setup_session()
+{
+	session = new SessionComponent('Session', 4, 4, trackBank);
+}
+
+function setup_piano_session()
+{
+	pianosession = new SessionComponent('PianoSession', 4, 4, trackBank);
+}
+
+function setup_mixer()
+{
+	mixer = new MixerComponent('Mixer', 4, 4, trackBank, returnBank, cursorTrack, masterTrack);
+}
+
+function setup_device()
+{
+	device = new MorphDeviceComponent('Device', 8, cursorDevice);
+	device._mode.set_value(0);
+}
+
+function setup_drumrack()
+{
+	drumrack = new MorphDrumRackComponent('DrumRack');
+}
+
+function setup_scales()
+{
+	scales = new MorphScaleComponent('Scales');
+	scales._scaleOffset.set_value(1);
+}
+
+function setup_pianoscales()
+{
+	pianoscales = new MorphScaleComponent('PianoScales');
+	pianoscales._scaleOffset.set_value(1);
+	pianoscales._noteOffset._max = 96;
+}
+
+function setup_transport()
+{
+	transport = new TransportComponent('Transport', host.createTransport());
+}
+
+function setup_notifications()
+{
+	notifier = new NotificationDisplayComponent();
+	notifier.add_subject(mixer._selectedstrip._track_name, 'Selected Track', undefined, 8, 'Main');
+	notifier.add_subject(device._device_name, 'Device', undefined, 6, 'Device');
+	notifier.add_subject(device._bank_name, 'Bank', undefined, 6, 'Device');
+	notifier.add_subject(drumrack._noteOffset, 'DrumOffset', undefined, 6, 'Main');
+	notifier.add_subject(scales._noteOffset, 'ScaleOffset', undefined, 6, 'Main');
+	notifier.add_subject(pianoscales._noteOffset, 'PianoOffset', undefined, 6, 'Piano');
+	notifier.add_subject(MainModes, 'Mode', ['Main', 'Shift'], 2);
+}
+
+function setup_tasks()
+{
+	tasks = new TaskServer(script, 100);
+}
+
+function setup_usermodes()
+{
+	userInput = host.getMidiInPort(0).createNoteInput("MorphUser", "80????", "90????", "D0????", "E0????");
+	userbank = new UserBankComponent('UserBank', 20, userInput);
+	userInput.setUseExpressiveMidi(true, 0, 24);
+	userInput.setShouldConsumeEvents(false);
+
+	userPage = new Page('UserPage');
+	userPage.enter_mode = function()
+	{
+		post('userPage entered');
+		for(var i=0;i<8;i++)
+		{
+			userbank.set_control(i, dial[i]);
+		}
+		for(var i=0;i<9;i++)
+		{
+			userbank.set_control(i+8, key[i+2]);
+		}
+		for(var i=0;i<2;i++)
+		{
+			userbank.set_control(i+17, slider[i]);
+		}
+		userbank.set_enabled(true);
+	}
+	userPage.exit_mode = function()
+	{
+		post('userPage exited');
+		userbank.set_enabled(false);
+		for(var i=0;i<19;i++)
+		{
+			userbank.set_control(i);
+		}
+	}
+
+}
+
+function setup_modes()
+{
+	script['piano_session_sub'] = new Grid(4, 4, 'PianoSessionGrid');
+	pianoSessionPage = new Page('PianoSessionPage')
+	pianoSessionPage.enter_mode = function()
+	{
+		for(var x = 0; x < 4; x++)
+		{
+			for(var y = 0; y < 4; y++)
+			{
+				piano_session_sub.add_control(x, y, pianokey[y + (x*4)]);
+			}
+		}
+		pianosession.assign_grid(piano_session_sub);
+	}
+	pianoSessionPage.exit_mode = function()
+	{
+		pianosession.assign_grid();
+		piano_session_sub.clear_buttons();
+	}
+
+	/*Pages 0, 2, 3 not currently used, but left in for future changes.  
+	Correct functionality requires firmware change to enable overlay queries.*/
+
+	//Page 0 : NoOverlay
+	offPage = new Page('OffPage');
+
+	//Page 1 : MusicProduction
+	mainPage = new Page('MainPage');
+	mainPage.enter_mode = function()
+	{
+		post('mainPage entered');
+		//mainPage.set_shift_button(button[7]);
+		mixer.set_nav_controls(button[0], button[1]);
+		mixer.selectedstrip()._send[0].set_control(pressure[0]);
+		mixer.selectedstrip()._send[1].set_control(pressure[1]);
+		device.set_parameter_controls(dial);
+		transport._stop.set_control(button[5]);
+		transport._play.set_control(button[4]);
+		transport._record.set_control(button[6]);
+		transport._crossfader.set_control(slider[1]);
+		drumrack.assign_grid(grid);
+		scales.assign_grid(keygrid);
+		pianoscales.assign_grid(pianogrid);
+		pianoscales._noteOffset.set_inc_dec_buttons(pianobutton[1], pianobutton[0]);
+		mainPage.active = true;
+	}
+	mainPage.exit_mode = function()
+	{
+		drumrack.assign_grid();
+		scales.assign_grid();
+		pianoscales._noteOffset.set_inc_dec_buttons();
+		pianoscales.assign_grid();
+		mixer.set_nav_controls();
+		mixer.selectedstrip()._send[0].set_control();
+		mixer.selectedstrip()._send[1].set_control();
+		device.set_parameter_controls();
+		transport._stop.set_control();
+		transport._play.set_control();
+		transport._record.set_control();
+		transport._crossfader.set_control()
+		post('mainPage exited');
+	}
+	mainPage.update_mode = function()
+	{
+		post('mainPage updated');
+		if(mainPage._shifted)
+		{
+			post('is_shifted');
+			drumrack.assign_grid();
+			scales.assign_grid();
+			pianoSessionPage.enter_mode();
+			pianoscales.assign_grid();
+			//mainPage.set_shift_button(button[7]);
+			mixer.selectedstrip()._send[0].set_control();
+			mixer.selectedstrip()._send[1].set_control();
+			session.assign_grid(grid);
+			session._navLt.set_control(button[0]);
+			session._navRt.set_control(button[1]);
+			drumrack._noteOffset.set_inc_dec_buttons(key[1], key[0]);
+			scales._noteOffset.set_inc_dec_buttons(key[12], key[11]);
+			userPage.enter_mode()
+			
+		}
+		else
+		{
+			drumrack._noteOffset.set_inc_dec_buttons();
+			scales._noteOffset.set_inc_dec_buttons();
+			session._navLt.set_control();
+			session._navRt.set_control();
+			session.assign_grid();
+			pianoSessionPage.exit_mode();
+			userPage.exit_mode();
+			mainPage.enter_mode();
+		}
+	}
+
+	//Page 2: Keyboard
+	keysPage = new Page('KeysPage');
+	keysPage.enter_mode = function()
+	{
+		post('keysPage entered');
+		keysPage.active = true;
+	}
+	keysPage.exit_mode = function()
+	{
+		keysPage.active = false;
+		post('keysPage exited');
+	}
+	keysPage.update_mode = function()
+	{
+		post('keysPage updated');
+		if(keysPage._shifted)
+		{
+		}
+		else
+		{
+			keysPage.enter_mode();
+		}
+	}
+
+	//Page 3: DrumPad
+	drumPage = new Page('DrumPage');
+	drumPage.enter_mode = function()
+	{
+		post('drumPage entered');
+		drumPage.active = true;
+	}
+	drumPage.exit_mode = function()
+	{
+		drumPage.active = false;
+		post('drumPage exited');
+	}
+	drumPage.update_mode = function()
+	{
+		post('drumPage updated');
+		if(drumPage._shifted)
+		{
+		}
+		else
+		{
+			drumPage.enter_mode();
+		}
+	}
+
+	script["MainModes"] = new PageStack(3, "Main Modes");
+	mainPage.set_shift_button(button[7]);
+
+	MainModes.add_mode(0, offPage);
+	MainModes.add_mode(1, mainPage);
+	MainModes.add_mode(2, keysPage);
+	MainModes.add_mode(3, drumPage);
+
+}
+
+function change_channel(num)
+{
+	//post('channel is:', num);
+	ds1_channel = num;
+	for(var i in NOTE_OBJECTS)
+	{
+		NOTE_OBJECTS[i]._channel = num;
+	}
+	for(var i in CC_OBJECTS)
+	{
+		CC_OBJECTS[i]._channel = num;
+	}
+}
+
+function setup_fixed_controls()
+{
+}
+
+function setup_listeners()
+{
+	//key[0].add_listener(function(obj){post('key[0]._value:', obj._value);});
+}
+
+function exit()
+{
+	//resetAll();
+}
+
+function onMidi(status, data1, data2)
+{
+	//printMidi(status, data1, data2)
+	//post('onMidi:', status, data1, data2)
+	if (isChannelController(status)) //&& MIDIChannel(status) == alias_channel)   //removing status check to include MasterFader
+	{
+		//post('CC: ' + status + ' ' + data1 + ' ' + data2, CC_OBJECTS[data1]._name);
+		CC_OBJECTS[data1].receive(data2);
+	}
+	else if (isNoteOn(status)) //&& MIDIChannel(status) == alias_channel)
+	{
+		//post('NOTE: ' + status + ' ' + data1 + ' ' + data2);
+		NOTE_OBJECTS[data1].receive(data2);
+	}
+	else if (isNoteOff(status)) //&& MIDIChannel(status) == alias_channel)
+	{
+		//post('NOTEOFF: ' + status + ' ' + data1 + ' ' + data2);
+		NOTE_OBJECTS[data1].receive(0);
+	}
+}
+
+function onSysex(data)
+{
+	//printSysex(data);
+
+	//These functions enable mode switching based on Overlay changes in realtime
+	/*
+	if((data=="f000021d000300000100f7")||(data=="f000021e000300000101f7"))
+	{
+		post('detected no overlay...');
+		MainModes.change_mode(0);
+	}
+	else if(data=="f000021d000400000101f7")
+	{
+		post('detected MusicProduction overlay...');
+		MainModes.change_mode(1);
+	}
+	else if(data=="f000021d000300000101f7")
+	{
+		post('detected Keyboard overlay...');
+		MainModes.change_mode(2);
+	}
+	else if(data=="f000021d000500000101f7")
+	{
+		post('detected Drumpad overlay...');
+		MainModes.change_mode(3);
+	}
+	*/
+}
+
+function display_mode(){}
+
+function setupTests()
+{
+	//tasks.addTask(function(){post('dial[0]._value:', dial[0]._value);}, undefined, 1, true, 'dial_test');
+}
+
+
 
