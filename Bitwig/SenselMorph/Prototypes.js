@@ -1,4 +1,4 @@
-// 0613 amounra : http://www.aumhaa.com  
+// 0718 amounra : http://www.aumhaa.com  
 
 const NOTE_TYPE = 'NOTE_TYPE';
 const CC_TYPE = 'CC_TYPE';
@@ -24,6 +24,14 @@ var Velocity_Translation_Table = [];
 for (var i=0;i<128;i++) {Note_Translation_Table[i] = -1; Velocity_Translation_Table[i] = i;}
 
 
+function doObject (object, f)
+{
+	return function ()
+	{
+		f.apply (object, arguments);
+	};
+}
+
 //this function initializes all the prototype core processes.  It should be called during init().
 function initialize_prototypes()
 {
@@ -31,7 +39,8 @@ function initialize_prototypes()
 	tasks = new TaskServer(script, 100);
 	flash = new FlashTask();
 	tasks.addTask(flash.update, null, 1, true, 'Flash');
- 	host.scheduleTask(flush, null, 100);
+ 	//host.scheduleTask(flush, null, 100);
+	host.scheduleTask(doObject(this, flush), 100);
 }
 
 function FlashTask()
@@ -141,6 +150,7 @@ function registerControlDicts()
 	for (var i=0;i<128;i++){NOTE_OBJECTS[i] = new Control(i, 'None');}
 	CC_OBJECTS = new Array(128);
 	for (var i=0;i<128;i++){CC_OBJECTS[i] = new Control(i, 'None');}
+	
 }
 
 //this is called whenever a control object is created, and basically maintains a list of all NOTE_TYPES and CC_TYPES that serve as lookup tables for MIDI input.
@@ -1639,6 +1649,7 @@ function SessionComponent(name, width, height, trackBank, _colors, mastertrack)
 					'isEmptyColor' : colors.OFF,
 					'navColor' : colors.BLUE};
 	this._trackBank = trackBank;
+	this._sceneBank = trackBank.sceneBank();
 	this._indication_depends_on_grid_assignment = true;
 
 	this._tracks = [];
@@ -1646,10 +1657,9 @@ function SessionComponent(name, width, height, trackBank, _colors, mastertrack)
 	this.height = function(){return height}
 	for (var t = 0; t < width; t++)
 	{
-		var track = trackBank.getTrack(t);
+		var track = trackBank.getChannel(t);
 		this._tracks[t] = new ClipLaunchComponent(this._name + '_ClipLauncher_' + t, height, track.getClipLauncherSlots(), this);
 	}
-	
 	var masterTrack = masterTrack ? masterTrack : host.createMasterTrackSection(height);
 	//post('type:', masterTrack.type);
 	this._tracks[width] = new ClipLaunchComponent(this._name + '_ClipLauncher_Master', height, masterTrack.getClipLauncherSlots(), this);
@@ -1662,13 +1672,13 @@ function SessionComponent(name, width, height, trackBank, _colors, mastertrack)
 	this._nav_lt_listener = function(obj){if(obj._value){self._trackOffset.set_value(self._trackOffset._value -=1)};}
 	this._nav_rt_listener = function(obj){if(obj._value){self._trackOffset.set_value(self._trackOffset._value +=1)};}
 
-	this._navUp = new ToggledParameter(this._name + '_NavUp', {num:0, javaObj:this._trackBank, action:'scrollScenesUp', monitor:'addCanScrollScenesUpObserver', onValue:this._colors.navColor});
+	this._navUp = new ToggledParameter(this._name + '_NavUp', {num:0, javaObj:this._sceneBank, action:'scrollPageForwards', onValue:this._colors.navColor});
 
-	this._navDn = new ToggledParameter(this._name + '_NavDown', {num:1, javaObj:this._trackBank, action:'scrollScenesDown', monitor:'addCanScrollScenesDownObserver', onValue:this._colors.navColor});
+	this._navDn = new ToggledParameter(this._name + '_NavDown', {num:1, javaObj:this._sceneBank, action:'scrollPageBackwards', onValue:this._colors.navColor});
 
-	this._navLt = new ToggledParameter(this._name + '_NavLeft', {num:2, javaObj:this._trackBank, action:'scrollTracksDown', monitor:'addCanScrollTracksDownObserver', onValue:this._colors.navColor});
+	this._navLt = new ToggledParameter(this._name + '_NavLeft', {num:2, javaObj:this._trackBank, action:'scrollPageBackwards', onValue:this._colors.navColor});
 
-	this._navRt = new ToggledParameter(this._name + '_NavRight', {num:3, javaObj:this._trackBank, action:'scrollTracksUp', monitor:'addCanScrollTracksUpObserver', onValue:this._colors.navColor});
+	this._navRt = new ToggledParameter(this._name + '_NavRight', {num:3, javaObj:this._trackBank, action:'scrollPageForwards', onValue:this._colors.navColor});
 
 	//this._zoom = new SessionZoomComponent('SessionZoomTrackBank', this, width, height);
 
@@ -1969,11 +1979,11 @@ function MixerComponent(name, num_channels, num_returns, trackBank, returnBank, 
 	this._returnstrips = [];
 	for (var cs = 0;cs < num_channels; cs++)
 	{
-		this._channelstrips[cs] = new ChannelStripComponent(this._name + '_ChannelStrip_' + cs, cs, this._trackBank.getTrack(cs), num_returns, _colors);
+		this._channelstrips[cs] = new ChannelStripComponent(this._name + '_ChannelStrip_' + cs, cs, this._trackBank.getChannel(cs), num_returns, _colors);
 	}
 	for (var rs = 0;rs < num_returns; rs++)
 	{
-		this._returnstrips[rs] = new ChannelStripComponent(this._name + '_ReturnStrip_' + rs, rs, this._returnBank.getTrack(rs), 0, _colors);
+		this._returnstrips[rs] = new ChannelStripComponent(this._name + '_ReturnStrip_' + rs, rs, this._returnBank.getChannel(rs), 0, _colors);
 	}
 	this._selectedstrip = new ChannelStripComponent(this._name + '_SelectedStrip', -1, this._cursorTrack, num_returns, _colors);
 	this._selectedstrip._clip_navigator = new OffsetComponent(this._name + '_clip_navigator', 0, 119, 4, this._update, colors.MAGENTA);
@@ -4169,7 +4179,8 @@ function TaskServer(script, interval)
 				task.ticks += 1;
 			}
 		}
-		host.scheduleTask(self._run, null, self._interval);
+		//host.scheduleTask(self._run, null, self._interval);
+		host.scheduleTask(doObject(this, self._run), self._interval);
 	}
 	this._run();
 }

@@ -1,13 +1,13 @@
+// 0718 amounra : http://www.aumhaa.com  
+
 loadAPI(5);
 host.setShouldFailOnDeprecatedUse(false);
  
 host.defineController("Sensel", "MorphMPE", "1.0", "aa49a7eb-d170-4b07-8a75-257278da7ca8");
-
-var PRODUCT = "1"; 
-
 host.defineMidiPorts(1, 1);
-host.addDeviceNameBasedDiscoveryPair(["Sensel Morph"], ["Sensel Morph"]);
-host.addDeviceNameBasedDiscoveryPair(["Sensel Morph"], ["Sensel Morph"]);
+
+//host.addDeviceNameBasedDiscoveryPair(["Sensel Morph"], ["Sensel Morph"]);
+//host.addDeviceNameBasedDiscoveryPair(["Sensel Morph"], ["Sensel Morph"]);
 
 /*for ( var m = 1; m < 9; m++)
 {
@@ -262,7 +262,7 @@ function MorphScaleComponent(name, _colors)
 
 	this._vertOffset = new OffsetComponent(this._name + '_Vertical_Offset', 0, 119, 4, self._request_update, colors.MAGENTA);
 	this._scaleOffset = new OffsetComponent(this._name + '_Scale_Offset', 0, SCALES.length, 3, self._request_update, colors.BLUE);
-	this._noteOffset = new OffsetComponent(this._name + '_Note_Offset', 0, 108, 36, self._request_update, colors.CYAN, colors.OFF, 12);
+	this._noteOffset = new OffsetComponent(this._name + '_Note_Offset', 0, 108, 60, self._request_update, colors.CYAN, colors.OFF, 12);
 	//this._octaveOffset = new OffsetComponent(this._name + '_Note_Offset', 0, 108, 36, self._request_update, colors.YELLOW, colors.OFF, 12);
 	//this._octaveOffset._scroll_hold = false;
 	//this._noteOffset._scroll_hold = false;
@@ -458,11 +458,11 @@ function init()
 
 	////////////////////////////////////////////////////////////////////////////////
 	application = host.createApplication();
-	cursorDevice = host.createCursorDevice();
 	cursorTrack = host.createCursorTrack(6, 1);
+	cursorDevice = cursorTrack.createCursorDevice();
 	masterTrack = host.createMasterTrack(8);
 	transport = host.createTransport();
-	trackBank = host.createMainTrackBank(8, 6, 4);
+	trackBank = host.createMainTrackBank(4, 6, 4);
 	returnBank = host.createEffectTrackBank(6, 4);
 	////////////////////////////////////////////////////////////////////////////////
 	
@@ -496,7 +496,8 @@ function init()
 
 function initialize_noteInput()
 {
-	noteInput = host.getMidiInPort(0).createNoteInput("Morph", "8?????", "9?????", "D?????", "E?????");
+	//noteInput = host.getMidiInPort(0).createNoteInput("Morph", "8?????", "9?????", "D?????", "E?????");
+	noteInput = host.getMidiInPort(0).createNoteInput("Morph", "??????");
 	noteInput.setUseExpressiveMidi(true, 0, 24);
 	noteInput.setShouldConsumeEvents(false);
 
@@ -709,7 +710,6 @@ function setup_modes()
 	mainPage.enter_mode = function()
 	{
 		post('mainPage entered');
-		//mainPage.set_shift_button(button[7]);
 		mixer.set_nav_controls(button[0], button[1]);
 		mixer.selectedstrip()._send[0].set_control(pressure[0]);
 		mixer.selectedstrip()._send[1].set_control(pressure[1]);
@@ -750,9 +750,10 @@ function setup_modes()
 			scales.assign_grid();
 			pianoSessionPage.enter_mode();
 			pianoscales.assign_grid();
-			//mainPage.set_shift_button(button[7]);
 			mixer.selectedstrip()._send[0].set_control();
 			mixer.selectedstrip()._send[1].set_control();
+			transport._record.set_control();
+			transport._overdub.set_control(button[6]);
 			session.assign_grid(grid);
 			session._navLt.set_control(button[0]);
 			session._navRt.set_control(button[1]);
@@ -768,6 +769,7 @@ function setup_modes()
 			session._navLt.set_control();
 			session._navRt.set_control();
 			session.assign_grid();
+			transport._overdub.set_control();
 			pianoSessionPage.exit_mode();
 			userPage.exit_mode();
 			mainPage.enter_mode();
@@ -822,7 +824,7 @@ function setup_modes()
 		}
 	}
 
-	script["MainModes"] = new PageStack(3, "Main Modes");
+	script["MainModes"] = new PageStack(4, "Main Modes");
 	mainPage.set_shift_button(button[7]);
 
 	MainModes.add_mode(0, offPage);
@@ -830,20 +832,6 @@ function setup_modes()
 	MainModes.add_mode(2, keysPage);
 	MainModes.add_mode(3, drumPage);
 
-}
-
-function change_channel(num)
-{
-	//post('channel is:', num);
-	ds1_channel = num;
-	for(var i in NOTE_OBJECTS)
-	{
-		NOTE_OBJECTS[i]._channel = num;
-	}
-	for(var i in CC_OBJECTS)
-	{
-		CC_OBJECTS[i]._channel = num;
-	}
 }
 
 function setup_fixed_controls()
@@ -863,7 +851,6 @@ function exit()
 function onMidi(status, data1, data2)
 {
 	//printMidi(status, data1, data2)
-	//post('onMidi:', status, data1, data2)
 	if (isChannelController(status)) //&& MIDIChannel(status) == alias_channel)   //removing status check to include MasterFader
 	{
 		//post('CC: ' + status + ' ' + data1 + ' ' + data2, CC_OBJECTS[data1]._name);
@@ -915,6 +902,7 @@ function display_mode(){}
 function setupTests()
 {
 	//tasks.addTask(function(){post('dial[0]._value:', dial[0]._value);}, undefined, 1, true, 'dial_test');
+	//trackBank.sceneBank().scrollPageForwards();
 }
 
 
