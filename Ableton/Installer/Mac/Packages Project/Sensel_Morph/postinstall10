@@ -15,16 +15,16 @@ find /Applications -maxdepth 1 -name 'Ableton Live 10*' | while read line; do
     COUNTER=$[$COUNTER +1]
 done
 cd $HOME/Documents/
-mkdir "Sensel Morph"
-mkdir "Sensel Morph/Ableton Live Script Project"
-mkdir "Sensel Morph/Overlay Maps"
+mkdir -p "Sensel Morph"
+mkdir -p "Sensel Morph/Ableton Live Script Project"
+mkdir -p "Sensel Morph/Ableton Live Overlay Maps"
 cp -r "/Users/Shared/Project/" "Sensel Morph/Ableton Live Script Project"
-cp -r "/Users/Shared/Overlays/" "Sensel Morph/Overlay Maps"
+cp -r "/Users/Shared/Overlays/" "Sensel Morph/Ableton Live Overlay Maps"
 
 # set permissions for new folder
 sudo chown -R $USER "$HOME/Documents/Sensel Morph/"
 sudo chown -R $USER "$HOME/Documents/Sensel Morph/Ableton Live Script Project"
-sudo chown -R $USER "$HOME/Documents/Sensel Morph/Overlay Maps"
+sudo chown -R $USER "$HOME/Documents/Sensel Morph/Ableton Live Overlay Maps"
 
 rm -r /Users/Shared/Sensel_Morph
 rm -r /Users/Shared/Project
