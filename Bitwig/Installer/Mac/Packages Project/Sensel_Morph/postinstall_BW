@@ -11,7 +11,7 @@ mkdir -p "Sensel Morph"
 mkdir -p "Sensel Morph/Bitwig Studio Script Project"
 mkdir -p "Sensel Morph/Bitwig Overlay Maps"
 cp -r "/Users/Shared/Project/" "Sensel Morph/Ableton Live Script Project"
-cp -r "/Users/Shared/Overlays/" "Sensel Morph/Overlay Maps"
+cp -r "/Users/Shared/Overlays/" "Sensel Morph/Bitwig Overlay Maps"
 cp -r "/Users/Shared/SenselMorph/" "Bitwig Studio/Controller Scripts"
 
 # set permissions for new folder
