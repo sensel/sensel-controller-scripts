@@ -713,10 +713,12 @@ function setup_modes()
 		mixer.set_nav_controls(button[0], button[1]);
 		mixer.selectedstrip()._send[0].set_control(pressure[0]);
 		mixer.selectedstrip()._send[1].set_control(pressure[1]);
+		//mixer.selectedstrip()._stop.set_control(button[5]);
 		device.set_parameter_controls(dial);
 		transport._stop.set_control(button[5]);
 		transport._play.set_control(button[4]);
-		transport._record.set_control(button[6]);
+		transport._overdub.set_control(button[6]);
+		//session._record_clip.set_control(button[6]);
 		transport._crossfader.set_control(slider[1]);
 		drumrack.assign_grid(grid);
 		scales.assign_grid(keygrid);
@@ -733,11 +735,13 @@ function setup_modes()
 		mixer.set_nav_controls();
 		mixer.selectedstrip()._send[0].set_control();
 		mixer.selectedstrip()._send[1].set_control();
+		mixer.selectedstrip()._stop.set_control();
 		device.set_parameter_controls();
 		transport._stop.set_control();
 		transport._play.set_control();
 		transport._record.set_control();
-		transport._crossfader.set_control()
+		session._record_clip.set_control();
+		transport._crossfader.set_control();
 		post('mainPage exited');
 	}
 	mainPage.update_mode = function()
@@ -750,10 +754,13 @@ function setup_modes()
 			scales.assign_grid();
 			pianoSessionPage.enter_mode();
 			pianoscales.assign_grid();
+			transport._stop.set_control();
 			mixer.selectedstrip()._send[0].set_control();
 			mixer.selectedstrip()._send[1].set_control();
-			transport._record.set_control();
-			transport._overdub.set_control(button[6]);
+			mixer.selectedstrip()._stop.set_control(button[5]);
+			transport._overdub.set_control();
+			//transport._record.set_control(button[6]);
+			session._record_clip.set_control(button[6]);
 			session.assign_grid(grid);
 			session._navLt.set_control(button[0]);
 			session._navRt.set_control(button[1]);
@@ -769,7 +776,9 @@ function setup_modes()
 			session._navLt.set_control();
 			session._navRt.set_control();
 			session.assign_grid();
-			transport._overdub.set_control();
+			transport._record.set_control();
+			transport._stop.set_control();
+			mixer.selectedstrip()._stop.set_control();
 			pianoSessionPage.exit_mode();
 			userPage.exit_mode();
 			mainPage.enter_mode();

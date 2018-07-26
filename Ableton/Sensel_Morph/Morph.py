@@ -23,6 +23,7 @@ from ableton.v2.control_surface.component import Component as ControlSurfaceComp
 from ableton.v2.control_surface.elements.encoder import EncoderElement
 from ableton.v2.control_surface.input_control_element import *
 from ableton.v2.control_surface.components.mixer import MixerComponent, simple_track_assigner
+from ableton.v2.control_surface.components.channel_strip import ChannelStripComponent
 from ableton.v2.control_surface.components.session import SessionComponent
 from ableton.v2.control_surface.components.transport import TransportComponent
 from ableton.v2.control_surface.components.session_navigation import SessionNavigationComponent
@@ -124,8 +125,6 @@ class MorphEncoderElement(EncoderElement):
 #class MorphBackgroundComponent(BackgroundComponent):
 
 
-
-
 class TranslationComponent(CompoundComponent):
 
 
@@ -148,6 +147,31 @@ class TranslationComponent(CompoundComponent):
 				if control:
 					control.use_default_message()
 					control.set_enabled(True)
+	
+
+
+class MorphChannelStripComponent(ChannelStripComponent):
+
+
+	def set_stop_button(self, button):
+		#debug('setting stop button:', button)
+		button and button.reset()
+		self._on_stop_value.subject = button
+		button and button.set_light(self._clip_stop_color)
+	
+
+	@listens('value')
+	def _on_stop_value(self, value):
+		if self._track:
+			self._track.stop_all_clips()
+	
+
+
+class MorphMixerComponent(MixerComponent):
+
+
+	def _create_strip(self):
+		return MorphChannelStripComponent()
 	
 
 
@@ -413,7 +437,7 @@ class Morph(ControlSurface):
 		self._session_ring = SessionRingComponent(name = 'Session_Ring', num_tracks = 4, num_scenes = 4)
 
 		self._session = SessionComponent(name = 'Session', session_ring = self._session_ring, auto_name = True)
-		self._session.layer = Layer(priority = 2, clip_launch_buttons = self._pad_matrix, stop_all_clips_button = self._button[5])
+		self._session.layer = Layer(priority = 2, clip_launch_buttons = self._pad_matrix,) # stop_all_clips_button = self._button[5])
 		self._session.set_enabled(False)
 
 		self._session_navigation = SessionNavigationComponent(name = 'Session_Navigation', session_ring = self._session_ring)
@@ -432,8 +456,9 @@ class Morph(ControlSurface):
 	
 
 	def _setup_mixer(self):
-		self._mixer = MixerComponent(tracks_provider = self._session_ring, track_assigner = simple_track_assigner, auto_name = True, invert_mute_feedback = False)
+		self._mixer = MorphMixerComponent(tracks_provider = self._session_ring, track_assigner = simple_track_assigner, auto_name = True, invert_mute_feedback = False)
 		self._mixer._selected_strip.main_layer = AddLayerMode(self._mixer._selected_strip, Layer(priority = 2, send_controls = self._send_pressure_matrix))
+		self._mixer._selected_strip.shift_layer = AddLayerMode(self._mixer._selected_strip, Layer(priority = 2, stop_button = self._button[5]))
 		#self._mixer._selected_strip.shift_layer = AddLayerMode(self._mixer, Layer(send_controls = self._shift_send_pressure_matrix.submatrix[:,]))
 	
 
@@ -463,7 +488,7 @@ class Morph(ControlSurface):
 		self._main_modes = ModesComponent(name = 'MainModes')
 		self._main_modes.add_mode('disabled', self._background)
 		self._main_modes.add_mode('Main', [self._piano_group, self._piano_group.main_layer, self._mixer, self._mixer._selected_strip.main_layer, self._viewcontrol, self._drum_group, self._drum_group.main_layer, self._keys_group, self._keys_group.main_layer, self._device, self._transport, self._assign_crossfader, self._report_mode])
-		self._main_modes.add_mode('Shift', [self._session, self._session2, self._session_navigation,  self._drum_group, self._drum_group.nav_layer, self._keys_group, self._keys_group.shift_layer, self._deassign_crossfader, self._recorder, self._translations, self._report_mode], behaviour = MomentaryBehaviour())
+		self._main_modes.add_mode('Shift', [self._mixer, self._mixer._selected_strip.shift_layer, self._session, self._session2, self._session_navigation,  self._drum_group, self._drum_group.nav_layer, self._keys_group, self._keys_group.shift_layer, self._deassign_crossfader, self._recorder, self._translations, self._report_mode], behaviour = MomentaryBehaviour())
 		self._main_modes.layer = Layer(Shift_button = self._button[7])
 		self._main_modes.set_enabled(True)
 		self._report_mode.subject = self._main_modes
