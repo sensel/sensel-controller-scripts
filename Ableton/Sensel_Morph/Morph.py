@@ -154,10 +154,7 @@ class MorphChannelStripComponent(ChannelStripComponent):
 
 
 	def set_stop_button(self, button):
-		#debug('setting stop button:', button)
-		button and button.reset()
 		self._on_stop_value.subject = button
-		button and button.set_light(self._clip_stop_color)
 	
 
 	@listens('value')
