@@ -482,7 +482,7 @@
 				<key>POSTINSTALL_PATH</key>
 				<dict>
 					<key>PATH</key>
-					<string>postinstall10</string>
+					<string>postinstall_BW</string>
 					<key>PATH_TYPE</key>
 					<integer>1</integer>
 				</dict>
