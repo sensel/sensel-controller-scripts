@@ -1,24 +1,18 @@
 #! /bin/sh
 
-sudo chown -R $USER /Users/Shared/SenselMorph
 sudo chown -R $USER /Users/Shared/Project
 sudo chown -R $USER /Users/Shared/Overlays
 
-
 cd $HOME/Documents/
 # -p will mkdir only if it doesn't exist
-mkdir -p "Sensel Morph"
 mkdir -p "Sensel Morph/Bitwig Studio Script Project"
 mkdir -p "Sensel Morph/Bitwig Overlay Maps"
-cp -r "/Users/Shared/Project/" "Sensel Morph/Ableton Live Script Project"
+cp -r "/Users/Shared/Project/" "Sensel Morph/Bitwig Studio Script Project"
 cp -r "/Users/Shared/Overlays/" "Sensel Morph/Bitwig Overlay Maps"
-cp -r "/Users/Shared/SenselMorph/" "Bitwig Studio/Controller Scripts"
 
 # set permissions for new folder
-sudo chown -R $USER "$HOME/Documents/Sensel Morph/"
-sudo chown -R $USER "$HOME/Documents/Sensel Morph/Ableton Live Script Project"
+sudo chown -R $USER "$HOME/Documents/Sensel Morph/Bitwig Studio Script Project"
 sudo chown -R $USER "$HOME/Documents/Sensel Morph/Overlay Maps"
 
-rm -r /Users/Shared/Sensel_Morph
 rm -r /Users/Shared/Project
 rm -r /Users/Shared/Overlays
