@@ -37,7 +37,6 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-Source: "..\..\..\Bitwig\SenselMorph\*"; DestDir: "{userdocs}\Bitwig Studio\Controller Scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\..\Bitwig\Project\*"; DestDir: "{userdocs}\Sensel Morph\Bitwig Studio Script Project\"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\..\Bitwig\Overlays\*"; DestDir: "{userdocs}\Sensel Morph\Bitwig Overlay Maps\"; Flags: ignoreversion recursesubdirs createallsubdirs
 
