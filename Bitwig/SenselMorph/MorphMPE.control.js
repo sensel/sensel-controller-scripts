@@ -1,8 +1,8 @@
-// 0718 amounra : http://www.aumhaa.com  
+// 0718 amounra : http://www.aumhaa.com
 
 loadAPI(5);
 host.setShouldFailOnDeprecatedUse(false);
- 
+
 host.defineController("Sensel", "MorphMPE", "1.0", "aa49a7eb-d170-4b07-8a75-257278da7ca8");
 host.defineMidiPorts(1, 1);
 
@@ -38,7 +38,7 @@ function MorphDrumRackComponent(name, _color)
 	this._split_column = 4;
 	this._update_request = false;
 	var cursorTrack = host.createCursorTrackSection(0, 0);
-	
+
 	//var cursorDevice = host.createCursorDevice();
 	this._drumPadBank = cursorDevice.createDrumPadBank(16);
 
@@ -49,7 +49,7 @@ function MorphDrumRackComponent(name, _color)
 	{
 		post('drumPadBank.channelScrollPositionObserver', args);
 	}
-	
+
 	//this._drumPadBank.addChannelScrollPositionObserver(this._scrollPosition.receive, -1);
 
 	this._navUp = new ToggledParameter(this._name + '_NavUp', {num:0, javaObj:this._drumPadBank, action:'scrollChannelsPageUp'});
@@ -87,8 +87,8 @@ function MorphDrumRackComponent(name, _color)
 		post('morph drumrack update');
 		self._update_request = false;
 		if(self._grid instanceof Grid)
-		
-		{	
+
+		{
 			var selected = self._stepsequencer && self._select._value ? self._stepsequencer.key_offset._value : -1;
 			var select_only = self._select_only._value;
 			var offset = self._noteOffset._value;
@@ -154,7 +154,7 @@ MorphDrumRackComponent.prototype.assign_grid = function(grid)
 	//this._stepsequencer.assign_grid();
 	this._grid = grid;
 	if(this._grid instanceof Grid)
-	{	
+	{
 		this._grid.add_listener(this._button_press);
 		if(!(this._last_pressed_button instanceof Button))
 		{
@@ -357,7 +357,7 @@ function MorphDeviceComponent(name, size, Device)
 	/*this._nextPreset = new Parameter(this._name + '_Next_Preset', {javaObj:this._device, action:'switchToNextPreset'});
 	this._previousPreset = new Parameter(this._name + '_Previous_Preset', {javaObj:this._device, action:'switchToPreviousPreset'});
 	this._preset_creators = new ArrayParameter(this._name + '_Preset_Creators', {javaObj:this._device, value:[], monitor:'addPresetCreatorsObserver'});
-	this._preset_creator = new Parameter(this._name + '_Preset_Creator', {javaObj:this._device, monitor_text:'addPresetCreatorObserver'});	
+	this._preset_creator = new Parameter(this._name + '_Preset_Creator', {javaObj:this._device, monitor_text:'addPresetCreatorObserver'});
 	this._preset_name = new Parameter(this._name + '_Preset_Name', {javaObj:this._device, monitor_text:'addPresetNameObserver'});*/
 
 
@@ -465,7 +465,7 @@ function init()
 	trackBank = host.createMainTrackBank(4, 6, 4);
 	returnBank = host.createEffectTrackBank(6, 4);
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	post('Morph script loading ------------------------------------------------');
 
 	host.getMidiInPort(0).setMidiCallback(onMidi);
@@ -482,6 +482,7 @@ function init()
 	setup_drumrack();
 	setup_scales();
 	setup_pianoscales();
+	setup_empty_note_scales();
 	setup_transport();
 	setup_tasks();
 	setup_usermodes();
@@ -522,6 +523,8 @@ var MORPH_DIALS = [9, 10, 11, 12, 13, 14, 15, 16];
 var MORPH_SEND_PRESSURE = [19, 20];
 var MORPH_PIANOBUTTONS = [9, 10, 11, 12];
 var MORPH_PIANOKEYS = [84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108];
+var MORPH_EMPTY_NOTE_ASSIGNMENTS = [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 52, 53, 54, 55, 56, 57, 58, 59, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125];
+var MORPH_EMPTY_NOTE_BUTTONS = [126, 127];
 
 function setup_controls()
 {
@@ -576,6 +579,18 @@ function setup_controls()
 		pianogrid.add_control(i, 0, pianokey[i]);
 	}
 
+  script['empty'] = [];
+  script['emptygrid'] = new Grid(53, 1, 'EmptyGrid');
+  for (var i  = 0; i< 53;i++)
+  {
+    empty[i] = new Button(MORPH_EMPTY_NOTE_ASSIGNMENTS[i], 'Empty_'+i);
+    emptygrid.add_control(i, 0, empty[i]);
+  }
+  script['emptybutton'] = [];
+	for (var i = 0; i< 2; i++)
+	{
+		emptybutton[i] = new Button(MORPH_EMPTY_NOTE_BUTTONS[i], 'EmptyButton_'+i);
+	}
 	post('setup_controls successful');
 
 }
@@ -617,6 +632,13 @@ function setup_pianoscales()
 	pianoscales = new MorphScaleComponent('PianoScales');
 	pianoscales._scaleOffset.set_value(1);
 	pianoscales._noteOffset._max = 96;
+}
+
+function setup_empty_note_scales()
+{
+	empty_note_scales = new MorphScaleComponent('EmptyNoteScales');
+	empty_note_scales._scaleOffset.set_value(1);
+	empty_note_scales._noteOffset._max = 72;
 }
 
 function setup_transport()
@@ -699,7 +721,7 @@ function setup_modes()
 		piano_session_sub.clear_buttons();
 	}
 
-	/*Pages 0, 2, 3 not currently used, but left in for future changes.  
+	/*Pages 0, 2, 3 not currently used, but left in for future changes.
 	Correct functionality requires firmware change to enable overlay queries.*/
 
 	//Page 0 : NoOverlay
@@ -713,17 +735,17 @@ function setup_modes()
 		mixer.set_nav_controls(button[0], button[1]);
 		mixer.selectedstrip()._send[0].set_control(pressure[0]);
 		mixer.selectedstrip()._send[1].set_control(pressure[1]);
-		//mixer.selectedstrip()._stop.set_control(button[5]);
 		device.set_parameter_controls(dial);
 		transport._stop.set_control(button[5]);
 		transport._play.set_control(button[4]);
 		transport._overdub.set_control(button[6]);
-		//session._record_clip.set_control(button[6]);
 		transport._crossfader.set_control(slider[1]);
 		drumrack.assign_grid(grid);
 		scales.assign_grid(keygrid);
 		pianoscales.assign_grid(pianogrid);
 		pianoscales._noteOffset.set_inc_dec_buttons(pianobutton[1], pianobutton[0]);
+		empty_note_scales.assign_grid(emptygrid);
+		empty_note_scales._noteOffset.set_inc_dec_buttons(emptybutton[1], emptybutton[0]);
 		mainPage.active = true;
 	}
 	mainPage.exit_mode = function()
@@ -732,6 +754,8 @@ function setup_modes()
 		scales.assign_grid();
 		pianoscales._noteOffset.set_inc_dec_buttons();
 		pianoscales.assign_grid();
+		empty_note_scales._noteOffset.set_inc_dec_buttons();
+		empty_note_scales.assign_grid();
 		mixer.set_nav_controls();
 		mixer.selectedstrip()._send[0].set_control();
 		mixer.selectedstrip()._send[1].set_control();
@@ -767,7 +791,7 @@ function setup_modes()
 			drumrack._noteOffset.set_inc_dec_buttons(key[1], key[0]);
 			scales._noteOffset.set_inc_dec_buttons(key[12], key[11]);
 			userPage.enter_mode()
-			
+
 		}
 		else
 		{
@@ -913,6 +937,3 @@ function setupTests()
 	//tasks.addTask(function(){post('dial[0]._value:', dial[0]._value);}, undefined, 1, true, 'dial_test');
 	//trackBank.sceneBank().scrollPageForwards();
 }
-
-
-
