@@ -22,7 +22,7 @@ from ableton.v2.control_surface.control_surface import ControlSurface
 from ableton.v2.control_surface.component import Component as ControlSurfaceComponent
 from ableton.v2.control_surface.elements.encoder import EncoderElement
 from ableton.v2.control_surface.input_control_element import *
-from ableton.v2.control_surface.components.mixer import MixerComponent, simple_track_assigner
+from ableton.v2.control_surface.components.mixer import MixerComponent, SimpleTrackAssigner
 from ableton.v2.control_surface.components.channel_strip import ChannelStripComponent
 from ableton.v2.control_surface.components.session import SessionComponent
 from ableton.v2.control_surface.components.transport import TransportComponent
@@ -88,19 +88,19 @@ class MomentaryBehaviour(ModeButtonBehaviour):
 	def press_immediate(self, component, mode):
 		debug('momentary press')
 		component.push_mode(mode)
-	
+
 
 	def release_immediate(self, component, mode):
 		debug('momentary release immediate')
 		if len(component.active_modes) > 1:
 			component.pop_mode(mode)
-	
+
 
 	def release_delayed(self, component, mode):
 		debug('momentary release delayed')
 		if len(component.active_modes) > 1:
 			component.pop_mode(mode)
-	
+
 
 
 class MorphButtonElement(ButtonElement):
@@ -110,7 +110,7 @@ class MorphButtonElement(ButtonElement):
 		self._is_enabled = enabled
 		self.suppress_script_forwarding = not enabled
 		self._request_rebuild()
-	
+
 
 class MorphEncoderElement(EncoderElement):
 
@@ -119,7 +119,7 @@ class MorphEncoderElement(EncoderElement):
 		self._is_enabled = enabled
 		self.suppress_script_forwarding = not enabled
 		self._request_rebuild()
-	
+
 
 
 #class MorphBackgroundComponent(BackgroundComponent):
@@ -133,7 +133,7 @@ class TranslationComponent(CompoundComponent):
 		self._controls = controls
 		self._channel = channel or 0
 		self._color = 0
-	
+
 
 	def update(self):
 		if self.is_enabled():
@@ -147,7 +147,7 @@ class TranslationComponent(CompoundComponent):
 				if control:
 					control.use_default_message()
 					control.set_enabled(True)
-	
+
 
 
 class MorphChannelStripComponent(ChannelStripComponent):
@@ -155,13 +155,13 @@ class MorphChannelStripComponent(ChannelStripComponent):
 
 	def set_stop_button(self, button):
 		self._on_stop_value.subject = button
-	
+
 
 	@listens('value')
 	def _on_stop_value(self, value):
 		if self._track:
 			self._track.stop_all_clips()
-	
+
 
 
 class MorphMixerComponent(MixerComponent):
@@ -169,7 +169,7 @@ class MorphMixerComponent(MixerComponent):
 
 	def _create_strip(self):
 		return MorphChannelStripComponent()
-	
+
 
 
 class MorphDeviceComponent(DeviceComponent):
@@ -180,14 +180,14 @@ class MorphDeviceComponent(DeviceComponent):
 		debug('DeviceComponent._on_device_changed:', device)
 		if device:
 			debug(device.name)
-	
+
 
 	def set_parameter_controls(self, controls):
 		super(MorphDeviceComponent, self).set_parameter_controls(controls)
 		debug('DeviceComponent.set_parameter_controls:', controls)
 		if controls:
 			debug(len(controls))
-	
+
 
 
 class MorphDrumGroup(DrumGroupComponent, ScrollComponent, Scrollable):
@@ -195,29 +195,29 @@ class MorphDrumGroup(DrumGroupComponent, ScrollComponent, Scrollable):
 
 	def set_bank_up_button(self, button):
 		self._bank_up_button_value.subject = button
-	
+
 
 	def set_bank_down_button(self, button):
 		self._bank_down_button_value.subject = button
-	
+
 
 	def can_scroll_up(self):
 		return 0 <= self.position <= 27
-	
+
 
 	def can_scroll_down(self):
 		return 1 <= self.position <=28
-	
+
 
 	def scroll_up(self):
 		self.position += 1
 		#self._update_note_translations()
-	
+
 
 	def scroll_down(self):
 		self.position += -1
 		#self._update_note_translations()
-	
+
 
 	@listens('value')
 	def _bank_up_button_value(self, value):
@@ -227,7 +227,7 @@ class MorphDrumGroup(DrumGroupComponent, ScrollComponent, Scrollable):
 			if 0 <= self.position <= 27 and liveobj_valid(self._drum_group_device):
 				debug('here')
 				self._drum_group_device.view.drum_pads_scroll_position = (self.position + 1)
-	
+
 
 	@listens('value')
 	def _bank_down_button_value(self, value):
@@ -237,7 +237,7 @@ class MorphDrumGroup(DrumGroupComponent, ScrollComponent, Scrollable):
 			if 1 <= self.position <= 28 and liveobj_valid(self._drum_group_device):
 				debug('here')
 				self._drum_group_device.view.drum_pads_scroll_position = (self.position - 1)
-	
+
 
 class MorphKeysGroup(PlayableComponent, ScrollComponent, Scrollable):
 
@@ -247,41 +247,41 @@ class MorphKeysGroup(PlayableComponent, ScrollComponent, Scrollable):
 
 	def __init__(self, *a, **k):
 		super(MorphKeysGroup, self).__init__(*a, **k)
-	
+
 
 	@property
 	def position(self):
 		return self._position
-	
+
 
 	@position.setter
 	def position(self, index):
 		assert(0 <= index <= 28)
 		self._position = index
 		#self.notify_position()
-	
+
 
 	def can_scroll_up(self):
 		return self._position < self._hi_limit
-	
+
 
 	def can_scroll_down(self):
 		return self._position > 1
-	
+
 
 	def scroll_up(self):
 		self.position = self.position + 1
 		self._update_note_translations()
-	
+
 
 	def scroll_down(self):
 		self.position = self.position - 1
 		self._update_note_translations()
-	
+
 
 	def _note_translation_for_button(self, button):
 		return (button.identifier, button.channel)
-	
+
 
 	def _update_note_translations(self):
 		for button in self.matrix:
@@ -290,7 +290,7 @@ class MorphKeysGroup(PlayableComponent, ScrollComponent, Scrollable):
 				button.enabled = True
 			else:
 				button.enabled = False
-	
+
 
 	def _set_button_control_properties(self, button):
 		if button and hasattr(button, '_control_element') and button._control_element:
@@ -298,7 +298,7 @@ class MorphKeysGroup(PlayableComponent, ScrollComponent, Scrollable):
 			button.identifier = button._control_element.original_identifier() + ((self.position - 5) * 12)
 			button.channel = button._control_element.original_channel() + self._channel_offset
 			#debug('setting:', button, button.identifier , button.channel)
-	
+
 
 #class MorphMixerComponent(MixerComponent):
 #
@@ -329,18 +329,18 @@ class Morph(ControlSurface):
 			self._setup_viewcontrol()
 			self._setup_recorder()
 			self._setup_translations()
-			self._setup_modes() 
+			self._setup_modes()
 		self._on_device_changed.subject = self._device_provider
 		self.log_message('<<<<<<<<<<<<<<<<<<<<<<<<< Morph log opened >>>>>>>>>>>>>>>>>>>>>>>>>')
 		self.show_message('Morph Control Surface Loaded')
 		self.schedule_message(2, self._init_surface)
 		#debug('device:', self._device._get_device())
-	
+
 
 
 	def _init_surface(self):
 		self._main_modes.selected_mode = 'Main'
-	
+
 
 	def _setup_controls(self):
 		is_momentary = True
@@ -374,13 +374,13 @@ class Morph(ControlSurface):
 
 		self._piano_matrix = ButtonMatrixElement(name = 'PianoMatrix', rows = [self._piano_key])
 		self._piano_session_matrix = ButtonMatrixElement(name = 'PianoSessionMatrix', rows = [self._piano_key[0:4], self._piano_key[4:8], self._piano_key[8:12], self._piano_key[12:16]])
-	
+
 
 	def _setup_background(self):
 		self._background = BackgroundComponent()
 		self._background.layer = Layer(priority = 1, pads = self._pad_matrix, buttons = self._button_matrix, keys = self._key_matrix, dials = self._dial_matrix, sliders = self._slider_matrix)
 		self._background.set_enabled(False)
-	
+
 
 
 	def _setup_drum_group(self):
@@ -388,14 +388,14 @@ class Morph(ControlSurface):
 		self._drum_group.main_layer = AddLayerMode(self._drum_group, Layer(priority = 2, matrix = self._pad_matrix))
 		self._drum_group.nav_layer = AddLayerMode(self._drum_group, Layer(priority = 2, scroll_up_button = self._key[1], scroll_down_button = self._key[0]))
 		self._drum_group.set_enabled(False)
-	
+
 
 	def _setup_keys_group(self):
 		self._keys_group = MorphKeysGroup()
 		self._keys_group.main_layer = AddLayerMode(self._keys_group, Layer(priority = 2, matrix = self._key_matrix))
 		self._keys_group.shift_layer = AddLayerMode(self._keys_group, Layer(priority = 2, matrix = self._key_shift_matrix, scroll_up_button = self._key[12], scroll_down_button = self._key[11]))
 		self._keys_group.set_enabled(False)
-	
+
 
 	def _setup_piano_group(self):
 		self._piano_group = MorphKeysGroup()
@@ -403,32 +403,32 @@ class Morph(ControlSurface):
 		self._piano_group.main_layer = AddLayerMode(self._piano_group, Layer(priority = 2, matrix = self._piano_matrix, scroll_up_button = self._piano_button[1], scroll_down_button = self._piano_button[0]))
 		#self._piano_group.shift_layer = AddLayerMode(self._piano_group, Layer(matrix = self._piano_shift_matrix, scroll_up_button = self._pian0[12], scroll_down_button = self._key[11]))
 		self._piano_group.set_enabled(False)
-	
+
 
 	def _setup_autoarm(self):
 		self._auto_arm = AutoArmComponent(name='Auto_Arm')
 		self._auto_arm.can_auto_arm_track = self._can_auto_arm_track
 		self._auto_arm._update_notification = lambda: None
-	
+
 
 	def _setup_transport(self):
-		self._transport = TransportComponent(name = 'Transport') 
+		self._transport = TransportComponent(name = 'Transport')
 		self._transport.layer = Layer(priority = 2, play_button = self._button[4], stop_button = self._button[5], overdub_button = self._button[6])
 		self._transport.set_enabled(False)
-	
+
 
 	def _setup_translations(self):
-		self._translations = TranslationComponent(name='Translations', 
-													channel=USER_CHANNEL, 
+		self._translations = TranslationComponent(name='Translations',
+													channel=USER_CHANNEL,
 													controls = self._dials + self._slider)
 		self._translations.set_enabled(False)
-	
+
 
 	def _setup_device(self):
 		self._device = MorphDeviceComponent(device_provider = self._device_provider, device_bank_registry = self._device_bank_registry)
 		self._device.layer = Layer(priority = 2, parameter_controls = self._dial_matrix)
 		self._device.set_enabled(False)
-	
+
 
 	def _setup_session(self):
 		self._session_ring = SessionRingComponent(name = 'Session_Ring', num_tracks = 4, num_scenes = 4)
@@ -440,7 +440,7 @@ class Morph(ControlSurface):
 		self._session_navigation = SessionNavigationComponent(name = 'Session_Navigation', session_ring = self._session_ring)
 		self._session_navigation.layer = Layer(priority = 2, left_button = self._button[0], right_button = self._button[1])
 		self._session_navigation.set_enabled(False)
-	
+
 
 	def _setup_session2(self):
 		self._session2 = SessionComponent(name = 'Session2', session_ring = self._session_ring, auto_name = True)
@@ -450,36 +450,36 @@ class Morph(ControlSurface):
 		#self._session_navigation2 = SessionNavigationComponent(name = 'Session_Navigation2', session_ring = self._session_ring)
 		#self._session_navigation2.layer = Layer(priority = 2, left_button = self._button[0], right_button = self._button[1])
 		#self._session_navigation2.set_enabled(False)
-	
+
 
 	def _setup_mixer(self):
-		self._mixer = MorphMixerComponent(tracks_provider = self._session_ring, track_assigner = simple_track_assigner, auto_name = True, invert_mute_feedback = False)
+		self._mixer = MorphMixerComponent(tracks_provider = self._session_ring, track_assigner = SimpleTrackAssigner(), auto_name = True, invert_mute_feedback = False)
 		self._mixer._selected_strip.main_layer = AddLayerMode(self._mixer._selected_strip, Layer(priority = 2, send_controls = self._send_pressure_matrix))
 		self._mixer._selected_strip.shift_layer = AddLayerMode(self._mixer._selected_strip, Layer(priority = 2, stop_button = self._button[5]))
 		#self._mixer._selected_strip.shift_layer = AddLayerMode(self._mixer, Layer(send_controls = self._shift_send_pressure_matrix.submatrix[:,]))
-	
+
 
 	def _setup_viewcontrol(self):
 		self._viewcontrol = ViewControlComponent()
 		self._viewcontrol.layer = Layer(priority = 2, prev_track_button = self._button[0], next_track_button = self._button[1])
 		self._viewcontrol.set_enabled(False)
-	
+
 
 	def _setup_recorder(self):
 		self._recorder = SessionRecordingComponent(view_controller = ViewControlComponent())
 		self._recorder.layer = Layer(priority = 2, record_button = self._button[6])
 		self._recorder.set_enabled(False)
-	
+
 
 	def _assign_crossfader(self):
 		self._slider[1].connect_to(self.song.master_track.mixer_device.crossfader)
 		debug('_assign_crossfader:', self._slider[1]._parameter_to_map_to)
-	
+
 
 	def _deassign_crossfader(self):
 		self._slider[1].release_parameter()
 		debug('_assign_crossfader:', self._slider[1]._parameter_to_map_to)
-	
+
 
 	def _setup_modes(self):
 		self._main_modes = ModesComponent(name = 'MainModes')
@@ -493,31 +493,31 @@ class Morph(ControlSurface):
 
 
 
-	
+
 
 	@listens('selected_mode')
 	def _report_mode(self, *a, **k):
 		debug('Mode:', self._main_modes.selected_mode)
-	
+
 
 
 	def _can_auto_arm_track(self, track):
 		routing = track.current_input_routing
 		return routing == 'Ext: All Ins' or routing == 'All Ins' or routing.startswith('Sensel') or routing.startswith('Morph')
-	
+
 
 
 	@listens('device')
 	def _on_device_changed(self):
 		debug('_on_device_changed:', self._device_provider.device)
 		self._drum_group.set_drum_group_device(self._device_provider.device)
-	
+
 
 
 	def disconnect(self):
 		self.log_message('<<<<<<<<<<<<<<<<<<<<<<<<< Morph log closed >>>>>>>>>>>>>>>>>>>>>>>>>')
 		super(Morph, self).disconnect()
-	
+
 
 	def handle_sysex(self, midi_bytes):
 		#debug('sysex: ', str(midi_bytes))
@@ -528,7 +528,7 @@ class Morph(ControlSurface):
 				self._connected = True
 				self._initialize_hardware()
 				self._initialize_script()
-	
+
 
 
 
