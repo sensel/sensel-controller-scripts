@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Sensel Morph Ableton Remote Scripts"
-#define MyAppVersion "0.5"
+#define MyAppVersion "0.6"
 #define MyAppPublisher "Sensel, Inc."
 #define MyAppURL "http://www.sensel.com/"
 #define MyAppExeName "SenselMorph_LiveScripts.exe"
