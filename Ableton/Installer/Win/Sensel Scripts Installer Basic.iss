@@ -41,8 +41,8 @@ Source: "..\..\..\Ableton\Sensel_Morph\*"; DestDir: "{commonappdata}\Ableton\Liv
 Source: "..\..\..\Ableton\Sensel_Morph\*"; DestDir: "{commonappdata}\Ableton\Live 10 Suite\Resources\MIDI Remote Scripts\Sensel_Morph"; Check: SuiteCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\..\Ableton\Sensel_Morph\*"; DestDir: "{commonappdata}\Ableton\Live 10 Standard\Resources\MIDI Remote Scripts\Sensel_Morph"; Check: StdCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\..\Ableton\Sensel_Morph\*"; DestDir: "{commonappdata}\Ableton\Live 10 Lite\Resources\MIDI Remote Scripts\Sensel_Morph"; Check: LiteCheck(); Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\..\Ableton\Project\*"; DestDir: "{userdocs}\Sensel Morph\Ableton Live Script Project\Project"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\..\Ableton\Overlays\*"; DestDir: "{userdocs}\Sensel Morph\Ableton Live Script Project\Overlay Maps"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\Ableton\Project\*"; DestDir: "{userdocs}\Sensel Morph\Ableton\Project"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\Ableton\Overlays\*"; DestDir: "{userdocs}\Sensel Morph\Ableton\Overlay Maps"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Code]
 
