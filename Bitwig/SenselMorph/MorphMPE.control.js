@@ -6,8 +6,13 @@ host.setShouldFailOnDeprecatedUse(false);
 host.defineController("Sensel", "MorphMPE", "1.0", "aa49a7eb-d170-4b07-8a75-257278da7ca8");
 host.defineMidiPorts(1, 1);
 
-//host.addDeviceNameBasedDiscoveryPair(["Sensel Morph"], ["Sensel Morph"]);
-//host.addDeviceNameBasedDiscoveryPair(["Sensel Morph"], ["Sensel Morph"]);
+if (host.platformIsWindows())
+	host.addDeviceNameBasedDiscoveryPair(["Sensel MIDI"], ["Sensel MIDI"]);
+else if (host.platformIsMac())
+	host.addDeviceNameBasedDiscoveryPair(["Sensel Morph"], ["Sensel Morph"]);
+else if (host.platformIsLinux())
+	host.addDeviceNameBasedDiscoveryPair(["Sensel Morph MIDI 1"], ["Sensel Morph MIDI 1"]);
+
 
 /*for ( var m = 1; m < 9; m++)
 {
