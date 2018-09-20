@@ -12,7 +12,7 @@ cp -r "/Users/Shared/Overlays/" "Sensel Morph/Bitwig Overlay Maps"
 
 # set permissions for new folder
 sudo chown -R $USER "$HOME/Documents/Sensel Morph/Bitwig Studio Script Project"
-sudo chown -R $USER "$HOME/Documents/Sensel Morph/Overlay Maps"
+sudo chown -R $USER "$HOME/Documents/Sensel Morph/Bitwig Overlay Maps"
 
 rm -r /Users/Shared/Project
 rm -r /Users/Shared/Overlays
