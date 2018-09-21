@@ -16,7 +16,7 @@ var NUM_TRACKS = 4;
 var NUM_SENDS = 2;
 var NUM_SCENES = 4;
 
-host.defineController("Sensel", "Sensel Morph MPE", "0.1", "f47ebb13-8281-44d7-a44b-7ca7a6778bf4", "Peter Nyboer");
+host.defineController("Sensel", "Sensel Morph - Basic MPE", "0.1", "f47ebb13-8281-44d7-a44b-7ca7a6778bf4", "Peter Nyboer");
 host.defineMidiPorts(1, 0);
 host.setShouldFailOnDeprecatedUse(true);
 
