@@ -1,5 +1,5 @@
-# by amounra 0118 : http://www.aumhaa.com
-# written against Live 10.0.2
+# by amounra 1018: http://www.aumhaa.com
+# written against Live 10.0.4
 
 from __future__ import with_statement, print_function, unicode_literals
 import Live
@@ -10,14 +10,10 @@ logger = logging.getLogger(__name__)
 from functools import partial
 from itertools import izip, izip_longest, product
 
-from ableton.v2.base import slicer, to_slice, liveobj_changed, group, flatten, listens, liveobj_valid
-from ableton.v2.control_surface.component import Component
-from ableton.v2.control_surface.compound_component import CompoundComponent
+from ableton.v2.base import group, listens, liveobj_valid #flatten, slicer, to_slice, liveobj_changed,
+from ableton.v2.control_surface import DeviceDecoratorFactory, BankingInfo
 from ableton.v2.control_surface.elements.button import ButtonElement
 from ableton.v2.control_surface.elements.button_matrix import ButtonMatrixElement
-from ableton.v2.control_surface.components.channel_strip import ChannelStripComponent
-from ableton.v2.control_surface.compound_component import CompoundComponent
-from ableton.v2.control_surface.control_element import ControlElement
 from ableton.v2.control_surface.control_surface import ControlSurface
 from ableton.v2.control_surface.component import Component as ControlSurfaceComponent
 from ableton.v2.control_surface.elements.encoder import EncoderElement
@@ -27,34 +23,31 @@ from ableton.v2.control_surface.components.channel_strip import ChannelStripComp
 from ableton.v2.control_surface.components.session import SessionComponent
 from ableton.v2.control_surface.components.transport import TransportComponent
 from ableton.v2.control_surface.components.session_navigation import SessionNavigationComponent
-from ableton.v2.control_surface.mode import AddLayerMode, LayerMode, ModesComponent, ModeButtonBehaviour, DelayMode
+from ableton.v2.control_surface.mode import AddLayerMode, LayerMode, ModesComponent, ModeButtonBehaviour #, DelayMode
 from ableton.v2.control_surface.resource import PrioritizedResource, ExclusiveResource
 from ableton.v2.control_surface.skin import Skin
 from ableton.v2.control_surface import DeviceBankRegistry
 from ableton.v2.control_surface.components.device import DeviceComponent
+from ableton.v2.control_surface.components.device_parameters import DeviceParameterComponent
 from ableton.v2.control_surface.layer import Layer
 from ableton.v2.control_surface.components.drum_group import DrumGroupComponent
 from ableton.v2.control_surface.components.view_control import ViewControlComponent
 from ableton.v2.control_surface.components.session_recording import SessionRecordingComponent
 from ableton.v2.control_surface.components.playable import PlayableComponent
-from ableton.v2.control_surface.elements.combo import ComboElement, DoublePressElement, MultiElement, DoublePressContext
 from ableton.v2.control_surface.components.background import BackgroundComponent
 from ableton.v2.control_surface.components.session_ring import SessionRingComponent
 from ableton.v2.control_surface.components.scroll import *
 from ableton.v2.base.event import *
 from ableton.v2.base.task import *
-from ableton.v2.control_surface.percussion_instrument_finder import PercussionInstrumentFinder, find_drum_group_device
-
-#from aumhaa.v2.control_surface.elements.mono_button import MonoButtonElement
-
-from pushbase.auto_arm_component import AutoArmComponent
-
+from ableton.v2.control_surface.default_bank_definitions import BANK_DEFINITIONS
+from ableton.v2.control_surface import ParameterInfo
+from ableton.v2.control_surface.components import AutoArmComponent
+from .parameter_mapping_sensitivities import parameter_mapping_sensitivity
 from _Generic.Devices import *
 
 
 def debug(*a, **k):
 	pass
-
 
 import imp
 
@@ -67,8 +60,6 @@ except ImportError:
 if found:
 	from aumhaa.v2.base.debug import initialize_debug
 	debug = initialize_debug()
-
-
 
 from Map import *
 
@@ -102,7 +93,6 @@ class MomentaryBehaviour(ModeButtonBehaviour):
 			component.pop_mode(mode)
 
 
-
 class MorphButtonElement(ButtonElement):
 
 
@@ -121,11 +111,7 @@ class MorphEncoderElement(EncoderElement):
 		self._request_rebuild()
 
 
-
-#class MorphBackgroundComponent(BackgroundComponent):
-
-
-class TranslationComponent(CompoundComponent):
+class TranslationComponent(ControlSurfaceComponent):
 
 
 	def __init__(self, controls = [], channel = 0, *a, **k):
@@ -149,7 +135,6 @@ class TranslationComponent(CompoundComponent):
 					control.set_enabled(True)
 
 
-
 class MorphChannelStripComponent(ChannelStripComponent):
 
 
@@ -163,7 +148,6 @@ class MorphChannelStripComponent(ChannelStripComponent):
 			self._track.stop_all_clips()
 
 
-
 class MorphMixerComponent(MixerComponent):
 
 
@@ -171,23 +155,10 @@ class MorphMixerComponent(MixerComponent):
 		return MorphChannelStripComponent()
 
 
-
 class MorphDeviceComponent(DeviceComponent):
 
-
-	def _on_device_changed(self, device):
-		super(MorphDeviceComponent, self)._on_device_changed(device)
-		debug('DeviceComponent._on_device_changed:', device)
-		if device:
-			debug(device.name)
-
-
-	def set_parameter_controls(self, controls):
-		super(MorphDeviceComponent, self).set_parameter_controls(controls)
-		debug('DeviceComponent.set_parameter_controls:', controls)
-		if controls:
-			debug(len(controls))
-
+	def _create_parameter_info(self, parameter, name):
+		return ParameterInfo(parameter=parameter, name=name, default_encoder_sensitivity=parameter_mapping_sensitivity(parameter, self.device().class_name))
 
 
 class MorphDrumGroup(DrumGroupComponent, ScrollComponent, Scrollable):
@@ -300,14 +271,11 @@ class MorphKeysGroup(PlayableComponent, ScrollComponent, Scrollable):
 			#debug('setting:', button, button.identifier , button.channel)
 
 
-#class MorphMixerComponent(MixerComponent):
-#
-
-
 class Morph(ControlSurface):
 
 
 	_model_name = 'Morph'
+	bank_definitions = BANK_DEFINITIONS
 
 	def __init__(self, c_instance, *a, **k):
 		self.log_message = logger.info
@@ -425,9 +393,11 @@ class Morph(ControlSurface):
 
 
 	def _setup_device(self):
-		self._device = MorphDeviceComponent(device_provider = self._device_provider, device_bank_registry = self._device_bank_registry)
-		self._device.layer = Layer(priority = 2, parameter_controls = self._dial_matrix)
+		self._device = MorphDeviceComponent(device_decorator_factory = DeviceDecoratorFactory(), banking_info = BankingInfo(self.bank_definitions), device_provider = self._device_provider, device_bank_registry = DeviceBankRegistry())
+		self._device_parameters = DeviceParameterComponent(self._device)
+		self._device_parameters.layer = Layer(priority = 2, parameter_controls = self._dial_matrix)
 		self._device.set_enabled(False)
+		self._device_parameters.set_enabled(False)
 
 
 	def _setup_session(self):
@@ -484,7 +454,7 @@ class Morph(ControlSurface):
 	def _setup_modes(self):
 		self._main_modes = ModesComponent(name = 'MainModes')
 		self._main_modes.add_mode('disabled', self._background)
-		self._main_modes.add_mode('Main', [self._piano_group, self._piano_group.main_layer, self._mixer, self._mixer._selected_strip.main_layer, self._viewcontrol, self._drum_group, self._drum_group.main_layer, self._keys_group, self._keys_group.main_layer, self._device, self._transport, self._assign_crossfader, self._report_mode])
+		self._main_modes.add_mode('Main', [self._piano_group, self._piano_group.main_layer, self._mixer, self._mixer._selected_strip.main_layer, self._viewcontrol, self._drum_group, self._drum_group.main_layer, self._keys_group, self._keys_group.main_layer, self._device, self._device_parameters, self._transport, self._assign_crossfader, self._report_mode])
 		self._main_modes.add_mode('Shift', [self._mixer, self._mixer._selected_strip.shift_layer, self._session, self._session2, self._session_navigation,  self._drum_group, self._drum_group.nav_layer, self._keys_group, self._keys_group.shift_layer, self._deassign_crossfader, self._recorder, self._translations, self._report_mode], behaviour = MomentaryBehaviour())
 		self._main_modes.layer = Layer(Shift_button = self._button[7])
 		self._main_modes.set_enabled(True)
@@ -528,8 +498,6 @@ class Morph(ControlSurface):
 				self._connected = True
 				self._initialize_hardware()
 				self._initialize_script()
-
-
 
 
 #a
