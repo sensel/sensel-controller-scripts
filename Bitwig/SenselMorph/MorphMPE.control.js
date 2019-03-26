@@ -23,10 +23,23 @@ else if (host.platformIsLinux())
 var script = this;
 var session;
 
-var DEBUG = true;	//post() doesn't work without this
-var VERSION = '1 .0';
+var DEBUG = false;	//post() doesn't work without this
+var VERSION = '1 .1';
 var VERBOSE = false;
 
+var CHECK_MAPS =          "F000021D007003014500200000000000000000F7";
+var MAGNET_VALUES_CALL =  "F0 00 02 1D 00 70 03 01 72 02 F7";
+var PIANO_OVERLAY = 			"F0 00 02 1D 00 03 00 00 01 01 F7";
+var PRODUCTION_OVERLAY = 	"F0 00 02 1D 00 04 00 00 01 01 F7";
+var DRUM_OVERLAY = 				"F0 00 02 1D 00 05 00 00 01 01 F7";
+var THUNDER_OVERLAY = 		"F0 00 02 1D 00 10 00 00 01 01 F7";
+var NO_OVERLAY = 					"F0 00 02 1D 00 0E 00 00 01 01 F7";
+
+var THUNDER_TRANSLATION_MAP = [];
+for(var i = 0; i < 128; i++)
+{
+	THUNDER_TRANSLATION_MAP[i] = i > 12 ? i : -1;
+}
 load("Prototypes.js");
 
 function MorphDrumRackComponent(name, _color)
@@ -176,7 +189,6 @@ MorphDrumRackComponent.prototype.set_verbose = function(val)
 	this._noteOffset._display_value = val;
 	this._octaveOffset._display_value = val;
 }
-
 
 function MorphScaleComponent(name, _colors)
 {
@@ -407,9 +419,9 @@ function MorphDeviceComponent(name, size, Device)
 
 MorphDeviceComponent.prototype.set_nav_buttons = function(button0, button1, button2, button3)
 {
-	this._navUp.set_control(button0);
+	this._navLt.set_control(button0);
 	this._navDn.set_control(button1);
-	this._navLt.set_control(button2);
+	this._NavUp.set_control(button2);
 	this._navRt.set_control(button3);
 	if(button0 instanceof Button){button0.send(colors.CYAN);}
 	if(button1 instanceof Button){button1.send(colors.CYAN);}
@@ -449,9 +461,9 @@ MorphDeviceComponent.prototype.set_verbose = function(val)
 	{
 		this._macro[i]._display_value = val;
 	}
-	this._navUp._display_value = val;
-	this._navDn._display_value = val;
 	this._navLt._display_value = val;
+	this._navDn._display_value = val;
+	this._navUp._display_value = val;
 	this._navRt._display_value = val;
 	this._enabled._display_value = val;
 	this._mode._display_value = val;
@@ -511,7 +523,7 @@ function initialize_noteInput()
 
 function initialize_surface()
 {
-
+	sendSysex(CHECK_MAPS);
 }
 
 
@@ -527,9 +539,10 @@ var MORPH_SLIDERS = [17, 18];
 var MORPH_DIALS = [9, 10, 11, 12, 13, 14, 15, 16];
 var MORPH_SEND_PRESSURE = [19, 20];
 var MORPH_PIANOBUTTONS = [9, 10, 11, 12];
-var MORPH_PIANOKEYS = [84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108];
-var MORPH_EMPTY_NOTE_ASSIGNMENTS = [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 52, 53, 54, 55, 56, 57, 58, 59, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125];
+var MORPH_PIANOKEYS = [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84];
+var MORPH_EMPTY_NOTE_ASSIGNMENTS = [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 52, 53, 54, 55, 56, 57, 58, 59, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125];
 var MORPH_EMPTY_NOTE_BUTTONS = [126, 127];
+var MORPH_THUNDER_DIALS = [21, 22, 23, 24, 25, 26, 27, 28];
 
 function setup_controls()
 {
@@ -549,13 +562,13 @@ function setup_controls()
 	{
 		button[i] = new Button(MORPH_BUTTONS[i], 'Button_'+i);
 	}
-	script['key'] = [];
+	/*script['key'] = [];
 	script['keygrid'] = new Grid(13, 1, 'KeyGrid');
 	for (var i = 0; i< 13;i++)
 	{
 		key[i] = new Button(MORPH_KEYS[i], 'Key_'+i);
 		keygrid.add_control(i, 0, key[i]);
-	}
+	}*/
 	script['slider'] = [];
 	for (var i = 0; i<2; i++)
 	{
@@ -585,8 +598,8 @@ function setup_controls()
 	}
 
   script['empty'] = [];
-  script['emptygrid'] = new Grid(53, 1, 'EmptyGrid');
-  for (var i  = 0; i< 53;i++)
+  script['emptygrid'] = new Grid(MORPH_EMPTY_NOTE_ASSIGNMENTS.length, 1, 'EmptyGrid');
+  for (var i  = 0; i< MORPH_EMPTY_NOTE_ASSIGNMENTS.length;i++)
   {
     empty[i] = new Button(MORPH_EMPTY_NOTE_ASSIGNMENTS[i], 'Empty_'+i);
     emptygrid.add_control(i, 0, empty[i]);
@@ -596,8 +609,22 @@ function setup_controls()
 	{
 		emptybutton[i] = new Button(MORPH_EMPTY_NOTE_BUTTONS[i], 'EmptyButton_'+i);
 	}
-	post('setup_controls successful');
+	script['thunderdial'] = [];
+	for (var i = 0; i< 8 ; i++)
+	{
+		thunderdial[i] = new Slider(MORPH_THUNDER_DIALS[i], 'ThunderDial_'+i);
+	}
+	script['thunderbuttons'] = NOTE_OBJECTS.slice(12, 127);
+	script['thunderbuttongrid'] = new Grid(73, 1, 'ThunderButtonGrid');
+	for (var i = 0; i<thunderbuttons.length; i++)
+	{
+		if(thunderbuttons[i] instanceof Button)
+		{
+			thunderbuttongrid.add_control(i, 0, thunderbuttons[i]);
+		}
+	}
 
+	post('setup_controls successful');
 }
 
 function setup_session()
@@ -671,9 +698,30 @@ function setup_tasks()
 function setup_usermodes()
 {
 	userInput = host.getMidiInPort(0).createNoteInput("MorphUser", "80????", "90????", "D0????", "E0????");
-	userbank = new UserBankComponent('UserBank', 20, userInput);
+	userbank = new UserBankComponent('UserBank', 127, userInput);
 	userInput.setUseExpressiveMidi(true, 0, 24);
 	userInput.setShouldConsumeEvents(false);
+
+	thunderUserPage = new Page('ThunderUserPage');
+	thunderUserPage.enter_mode = function()
+	{
+		post('thunderUserPage entered');
+		for(var i=0;i<thunderbuttons.length;i++)
+		{
+			userbank.set_control(i, thunderbuttons[i]);
+		}
+		userbank.set_enabled(true);
+	}
+	thunderUserPage.exit_mode = function()
+	{
+		post('userPage exited');
+		thunderUserPage.set_enabled(false);
+		for(var i=0;i<127;i++)
+		{
+			userbank.set_control(i);
+		}
+		userbank.set_enabled(false);
+	}
 
 	userPage = new Page('UserPage');
 	userPage.enter_mode = function()
@@ -685,7 +733,7 @@ function setup_usermodes()
 		}
 		for(var i=0;i<9;i++)
 		{
-			userbank.set_control(i+8, key[i+2]);
+			userbank.set_control(i+8, pianokey[i+2]);
 		}
 		for(var i=0;i<2;i++)
 		{
@@ -701,7 +749,9 @@ function setup_usermodes()
 		{
 			userbank.set_control(i);
 		}
+		userbank.set_enabled(false);
 	}
+
 
 }
 
@@ -726,9 +776,6 @@ function setup_modes()
 		piano_session_sub.clear_buttons();
 	}
 
-	/*Pages 0, 2, 3 not currently used, but left in for future changes.
-	Correct functionality requires firmware change to enable overlay queries.*/
-
 	//Page 0 : NoOverlay
 	offPage = new Page('OffPage');
 
@@ -746,19 +793,16 @@ function setup_modes()
 		transport._overdub.set_control(button[6]);
 		transport._crossfader.set_control(slider[1]);
 		drumrack.assign_grid(grid);
-		scales.assign_grid(keygrid);
-		pianoscales.assign_grid(pianogrid);
-		pianoscales._noteOffset.set_inc_dec_buttons(pianobutton[1], pianobutton[0]);
+		scales.assign_grid(pianogrid);
 		empty_note_scales.assign_grid(emptygrid);
 		empty_note_scales._noteOffset.set_inc_dec_buttons(emptybutton[1], emptybutton[0]);
 		mainPage.active = true;
+		mainPage.set_shift_button(button[7]);
 	}
 	mainPage.exit_mode = function()
 	{
 		drumrack.assign_grid();
 		scales.assign_grid();
-		pianoscales._noteOffset.set_inc_dec_buttons();
-		pianoscales.assign_grid();
 		empty_note_scales._noteOffset.set_inc_dec_buttons();
 		empty_note_scales.assign_grid();
 		mixer.set_nav_controls();
@@ -771,6 +815,7 @@ function setup_modes()
 		transport._record.set_control();
 		session._record_clip.set_control();
 		transport._crossfader.set_control();
+		mainPage.set_shift_button();
 		post('mainPage exited');
 	}
 	mainPage.update_mode = function()
@@ -781,8 +826,6 @@ function setup_modes()
 			post('is_shifted');
 			drumrack.assign_grid();
 			scales.assign_grid();
-			pianoSessionPage.enter_mode();
-			pianoscales.assign_grid();
 			transport._stop.set_control();
 			mixer.selectedstrip()._send[0].set_control();
 			mixer.selectedstrip()._send[1].set_control();
@@ -793,8 +836,8 @@ function setup_modes()
 			session.assign_grid(grid);
 			session._navLt.set_control(button[0]);
 			session._navRt.set_control(button[1]);
-			drumrack._noteOffset.set_inc_dec_buttons(key[1], key[0]);
-			scales._noteOffset.set_inc_dec_buttons(key[12], key[11]);
+			drumrack._noteOffset.set_inc_dec_buttons(pianokey[1], pianokey[0]);
+			scales._noteOffset.set_inc_dec_buttons(pianokey[12], pianokey[11]);
 			userPage.enter_mode()
 
 		}
@@ -808,7 +851,6 @@ function setup_modes()
 			transport._record.set_control();
 			transport._stop.set_control();
 			mixer.selectedstrip()._stop.set_control();
-			pianoSessionPage.exit_mode();
 			userPage.exit_mode();
 			mainPage.enter_mode();
 		}
@@ -820,9 +862,27 @@ function setup_modes()
 	{
 		post('keysPage entered');
 		keysPage.active = true;
+		mixer.set_nav_controls(button[0], button[1]);
+		mixer.selectedstrip()._send[0].set_control(pressure[0]);
+		mixer.selectedstrip()._send[1].set_control(pressure[1]);
+		transport._play.set_control(button[4]);
+		transport._stop.set_control(button[5]);
+		transport._overdub.set_control(button[6]);
+		pianoscales.assign_grid(pianogrid);
+		pianoscales._noteOffset.set_inc_dec_buttons(pianobutton[1], pianobutton[0]);
+		keysPage.set_shift_button(button[7]);
 	}
 	keysPage.exit_mode = function()
 	{
+		keysPage.set_shift_button();
+		mixer.set_nav_controls();
+		mixer.selectedstrip()._send[0].set_control();
+		mixer.selectedstrip()._send[1].set_control();
+		transport._play.set_control();
+		transport._stop.set_control();
+		transport._overdub.set_control();
+		pianoscales.assign_grid();
+		pianoscales._noteOffset.set_inc_dec_buttons();
 		keysPage.active = false;
 		post('keysPage exited');
 	}
@@ -831,9 +891,20 @@ function setup_modes()
 		post('keysPage updated');
 		if(keysPage._shifted)
 		{
+			pianoscales.assign_grid();
+			pianoSessionPage.enter_mode();
+			mixer.selectedstrip()._stop.set_control(button[5]);
+			session._record_clip.set_control(button[6]);
+			session._navLt.set_control(button[0]);
+			session._navRt.set_control(button[1]);
 		}
 		else
 		{
+			mixer.selectedstrip()._stop.set_control();
+			session._record_clip.set_control();
+			session._navLt.set_control();
+			session._navRt.set_control();
+			pianoSessionPage.exit_mode();
 			keysPage.enter_mode();
 		}
 	}
@@ -844,9 +915,26 @@ function setup_modes()
 	{
 		post('drumPage entered');
 		drumPage.active = true;
+		mixer.set_nav_controls(button[0], button[1]);
+		mixer.selectedstrip()._send[0].set_control(pressure[0]);
+		mixer.selectedstrip()._send[1].set_control(pressure[1]);
+		transport._play.set_control(button[4]);
+		transport._stop.set_control(button[5]);
+		transport._overdub.set_control(button[6]);
+		drumrack.assign_grid(grid);
+		drumPage.set_shift_button(button[7]);
+		recalculate_translation_map = true;
 	}
 	drumPage.exit_mode = function()
 	{
+		drumPage.set_shift_button();
+		drumrack.assign_grid();
+		mixer.set_nav_controls();
+		mixer.selectedstrip()._send[0].set_control();
+		mixer.selectedstrip()._send[1].set_control();
+		transport._play.set_control();
+		transport._stop.set_control();
+		transport._overdub.set_control();
 		drumPage.active = false;
 		post('drumPage exited');
 	}
@@ -855,20 +943,94 @@ function setup_modes()
 		post('drumPage updated');
 		if(drumPage._shifted)
 		{
+			mixer.selectedstrip()._stop.set_control(button[5]);
+			session._record_clip.set_control(button[6]);
+			session._navLt.set_control(button[0]);
+			session._navRt.set_control(button[1]);
 		}
 		else
 		{
+			mixer.selectedstrip()._stop.set_control();
+			session._record_clip.set_control();
+			session._navLt.set_control();
+			session._navRt.set_control();
 			drumPage.enter_mode();
 		}
 	}
 
-	script["MainModes"] = new PageStack(4, "Main Modes");
-	mainPage.set_shift_button(button[7]);
+	//Page 4: ThunderPage
+	thunderPage = new Page('ThunderPage');
+	thunderPage.enter_mode = function()
+	{
+		post('thunderPage entered');
+		mixer.set_nav_controls(button[0], button[1]);
+		mixer.selectedstrip()._send[0].set_control(pressure[0]);
+		mixer.selectedstrip()._send[1].set_control(pressure[1]);
+		transport._play.set_control(button[4]);
+		transport._stop.set_control(button[5]);
+		transport._overdub.set_control(button[6]);
+		device.set_parameter_controls(thunderdial);
+		thunderUserPage.enter_mode();
+		for(var i=0; i<NOTE_OBJECTS.length;i++)
+		{
+			if(NOTE_OBJECTS[i].set_translation)
+			{
+				NOTE_OBJECTS[i].set_translation(i > 12 ? i : -1);
+			}
+		}
+		thunderPage.set_shift_button(button[7]);
+		thunderPage.active = true;
+
+
+	}
+	thunderPage.exit_mode = function()
+	{
+		thunderUserPage.exit_mode();
+		device.set_parameter_controls();
+		mixer.set_nav_controls();
+		mixer.selectedstrip()._send[0].set_control();
+		mixer.selectedstrip()._send[1].set_control();
+		transport._play.set_control();
+		transport._stop.set_control();
+		transport._overdub.set_control();
+		for(var i=0; i<NOTE_OBJECTS.length;i++)
+		{
+			if(NOTE_OBJECTS[i].set_translation)
+			{
+				NOTE_OBJECTS[i].set_translation(-1);
+			}
+		}
+		thunderPage.set_shift_button();
+		thunderPage.active = false;
+		post('thunderPage exited');
+	}
+	thunderPage.update_mode = function()
+	{
+		post('thunderPage updated');
+		if(thunderPage._shifted)
+		{
+			mixer.selectedstrip()._stop.set_control(button[5]);
+			session._record_clip.set_control(button[6]);
+			session._navLt.set_control(button[0]);
+			session._navRt.set_control(button[1]);
+		}
+		else
+		{
+			mixer.selectedstrip()._stop.set_control();
+			session._record_clip.set_control();
+			session._navLt.set_control();
+			session._navRt.set_control();
+			thunderPage.enter_mode();
+		}
+	}
+	script["MainModes"] = new PageStack(5, "Main Modes");
+
 
 	MainModes.add_mode(0, offPage);
 	MainModes.add_mode(1, mainPage);
 	MainModes.add_mode(2, keysPage);
 	MainModes.add_mode(3, drumPage);
+	MainModes.add_mode(4, thunderPage);
 
 }
 
@@ -908,10 +1070,11 @@ function onMidi(status, data1, data2)
 
 function onSysex(data)
 {
-	//printSysex(data);
+	printSysex(data);
 
+	//currently disabled because there is no way to query the current overlay from the device
 	//These functions enable mode switching based on Overlay changes in realtime
-	/*
+
 	if((data=="f000021d000300000100f7")||(data=="f000021e000300000101f7"))
 	{
 		post('detected no overlay...');
@@ -932,13 +1095,16 @@ function onSysex(data)
 		post('detected Drumpad overlay...');
 		MainModes.change_mode(3);
 	}
-	*/
+	else if(data=="f000021d001000000101f7")
+	{
+		post('detected Thunder overlay...');
+		MainModes.change_mode(4);
+	}
 }
 
 function display_mode(){}
 
 function setupTests()
 {
-	//tasks.addTask(function(){post('dial[0]._value:', dial[0]._value);}, undefined, 1, true, 'dial_test');
-	//trackBank.sceneBank().scrollPageForwards();
+	//post('thunderbuttons:', thunderbuttons.length, thunderbuttons[0]._name, thunderbuttons[15]._name);
 }
