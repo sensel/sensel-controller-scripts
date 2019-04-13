@@ -1,4 +1,4 @@
-// 0718 amounra : http://www.aumhaa.com  
+// 0718 amounra : http://www.aumhaa.com
 
 const NOTE_TYPE = 'NOTE_TYPE';
 const CC_TYPE = 'CC_TYPE';
@@ -13,10 +13,10 @@ CC_OBJECTS = new Array(128);
 
 //var noteInput = {'setNoteKeyMap':function(){}};
 var noteInput = {'setKeyTranslationTable':function(){}};
-var midiBuffer = {NONE_TYPE:{},CC_TYPE:{},NOTE_TYPE:{}}; 
+var midiBuffer = {NONE_TYPE:{},CC_TYPE:{},NOTE_TYPE:{}};
 var midiNoteBuffer = {};
 var midiCCBuffer = {};
-
+var override_noteInput = false;
 var recalculate_translation_map = true;
 
 var Note_Translation_Table = [];
@@ -90,14 +90,14 @@ function FlashTask()
 
 function extend(destination, source)
 {
-	for (var k in source) 
+	for (var k in source)
 	{
 		if (source.hasOwnProperty(k))
 		{
 			destination[k] = source[k];
 		}
 	}
-	return destination; 
+	return destination;
 }
 
 function override(object, methodName, callback)
@@ -150,7 +150,7 @@ function registerControlDicts()
 	for (var i=0;i<128;i++){NOTE_OBJECTS[i] = new Control(i, 'None');}
 	CC_OBJECTS = new Array(128);
 	for (var i=0;i<128;i++){CC_OBJECTS[i] = new Control(i, 'None');}
-	
+
 }
 
 //this is called whenever a control object is created, and basically maintains a list of all NOTE_TYPES and CC_TYPES that serve as lookup tables for MIDI input.
@@ -166,6 +166,7 @@ function register_control(control)
 	}
 }
 
+
 function flush()
 {
 	//tasks._run();
@@ -178,13 +179,64 @@ function flush()
 			Event[0]._send(Event[1]);
 		}
 	}
-	midiBuffer = {NONE_TYPE:{},CC_TYPE:{},NOTE_TYPE:{}}; 
+	midiBuffer = {NONE_TYPE:{},CC_TYPE:{},NOTE_TYPE:{}};
 	if(recalculate_translation_map)
 	{
-		//post('Note_Translation_Table:', Note_Translation_Table);
+		//post('Note_Translation_Table:', Note_Translation_Table, override_noteInput);
 		noteInput.setKeyTranslationTable(Note_Translation_Table);
 		noteInput.setVelocityTranslationTable(Velocity_Translation_Table);
 		recalculate_translation_map = false;
+	}
+}
+
+function flush()
+{
+	//tasks._run();
+	post('flush')
+	for(var type in midiBuffer)
+	{
+		var buf = midiBuffer[type];
+		for(var index in buf)
+		{
+			var Event = buf[index];
+			Event[0]._send(Event[1]);
+		}
+	}
+	midiBuffer = {NONE_TYPE:{},CC_TYPE:{},NOTE_TYPE:{}};
+	if(recalculate_translation_map)
+	{
+		post('recalculate_translation_map:');
+		if(override_noteInput)
+		{
+			post('recalculate_translation_map: mode:', MainModes.current_mode());
+			switch(MainModes.current_mode())
+			{
+				case 1:
+					productionInput.setKeyTranslationTable(Note_Translation_Table);
+					productionInput.setVelocityTranslationTable(Velocity_Translation_Table);
+					break;
+				case 2:
+					keysInput.setKeyTranslationTable(Note_Translation_Table);
+					keysInput.setVelocityTranslationTable(Velocity_Translation_Table);
+					break;
+				case 3:
+					drumInput.setKeyTranslationTable(Note_Translation_Table);
+					drumInput.setVelocityTranslationTable(Velocity_Translation_Table);
+					break;
+				case 4:
+					thunderInput.setKeyTranslationTable(Note_Translation_Table);
+					thunderInput.setVelocityTranslationTable(Velocity_Translation_Table);
+					break;
+			}
+			recalculate_translation_map = false;
+		}
+		else
+		{
+			//post('Note_Translation_Table:', Note_Translation_Table, override_noteInput);
+			noteInput.setKeyTranslationTable(Note_Translation_Table);
+			noteInput.setVelocityTranslationTable(Velocity_Translation_Table);
+			recalculate_translation_map = false;
+		}
 	}
 }
 
@@ -210,7 +262,9 @@ function displayMessage(message)
 var SETTING_TYPES = {'enum':{func:'getEnumSetting', observer:'addValueObserver', params:['_options', '_initialValue']},
  					'number':{func:'getNumberSetting', observer:'addRawValueObserver', params:['_minValue', '_maxValue', '_stepResolution', '_unit', '_initialValue']},
 					'signal':{func:'getSignalSetting', observer:'addSignalObserver', params:['_action']},
-					'string':{func:'getStringSetting', observer:'addValueObserver', params:['_numChars', '_initialText']}};
+					'string':{func:'getStringSetting', observer:'addValueObserver', params:['_numChars', '_initialText']},
+					'boolean':{func:'getBooleanSetting', observer:'addValueObserver', params:['_initialValue']},
+					'color':{func:'getColorSetting', observer:'addValueObserver', params:['_initialColor']}};
 
 function Setting(name, type, args)
 {
@@ -220,6 +274,7 @@ function Setting(name, type, args)
 	this._category = undefined;
 	this._type = type;
 	this._parameter = undefined;
+	this._value = undefined;
 	for (var i in args)
 	{
 		this['_'+i] = args[i];
@@ -227,7 +282,8 @@ function Setting(name, type, args)
 	this._Callback = function(val)
 	{
 		post('Value changed for', self._name, 'setting:', val);
-		//add check for _parameter, forward value if value is different than parameter._value is different.
+		//add check for _parameter, forward value if value is different than parameter._value.
+		self._value = val;
 	}
 	if(this._type in SETTING_TYPES)
 	{
@@ -247,12 +303,44 @@ function Setting(name, type, args)
 				func_args.push(undefined);
 			}
 		}
-		var theDocument = host.getDocumentState();
-		this._setting = theDocument[func].apply(theDocument, func_args);
-		post('type', this._type, 'observer', observer);
+		var docState = host.getDocumentState();
+		/*for some reason the following one-liner no longer works so were going to write really ugly code to compensate.
+		this used to work :(  Now, docState[func] returns the right jObj, but
+		the returned obj isn't callable via apply or call. */
+		//this._setting = docState[func].apply(script, func_args);
+		switch(this._type)
+		{
+			case 'enum':
+				this._setting = docState.getEnumSetting(this._name, this._category, this._options, this._initialValue);
+				break;
+			case 'number':
+				this._setting = docState.getNumberSetting(this._name, this._category, this._options, this._minValue, this._maxValue, this._stepResolution, this._unit, this._initialValue);
+				break;
+			case 'signal':
+				this._setting = docState.getSignalSetting(this._name, this._category, this._action);
+				break;
+			case 'string':
+				this._setting = docState.getStringSetting(this._name, this._category, this._numChars, this._initialText);
+				break;
+			case 'boolean':
+				this._setting = docState.getBooleanSetting(this._name, this._category, this._initialValue);
+				break;
+			case 'color':
+				this._setting = docState.getColorSetting(this._name, this._category, this._initialColor);
+				break;
+		}
 		this._setting[observer](this._Callback);
 	}
 }
+
+Setting.prototype.set_callback = function(callback)
+{
+	post(this._name, 'set_callback', callback);
+	var observer = SETTING_TYPES[this._type]['observer'];
+	this._setting[observer](callback);
+}
+
+
 
 function OSCDisplay(name)
 {
@@ -263,7 +351,7 @@ function OSCDisplay(name)
 
 OSCDisplay.prototype.set_enabled = function(val)
 {
-	
+
 	for(var i in self.controls)
 	{
 		var control = self.controls[i];
@@ -272,9 +360,9 @@ OSCDisplay.prototype.set_enabled = function(val)
 }
 
 /////////////////////////////////////////////////////////////////////////
-//This is the root object to be used for all controls, or objects that 
+//This is the root object to be used for all controls, or objects that
 //will serve as notifiers to other objects.  It maintains a list of listeners as well as a
-//"target_stack" that can be used to push/pop targets to be notified when its value changes 
+//"target_stack" that can be used to push/pop targets to be notified when its value changes
 //(only the first target in the stack is notified).  Notifier is "subclassed" by many other prototypes.
 
 function Notifier(name)
@@ -424,7 +512,7 @@ Notifier.prototype.set_enabled = function(val)
 }
 
 //////////////////////////////////////////////////////////////////////////
-//A Notifier representing a physical control that can send and receive MIDI 
+//A Notifier representing a physical control that can send and receive MIDI
 
 function Control(identifier, name)
 {
@@ -765,7 +853,7 @@ Grid.prototype.add_control = function(x, y, button)
 		}
 	}
 }
-	
+
 Grid.prototype.send = function(x, y, value)
 {
 	this._grid[x][y].send(value);
@@ -915,7 +1003,7 @@ Mode.prototype.update = function()
 	{
 		if (i == this._value)
 		{
-			
+
 			this.mode_buttons[i].turn_on();
 		}
 		else
@@ -924,7 +1012,7 @@ Mode.prototype.update = function()
 		}
 	}
 }
-		
+
 Mode.prototype.add_mode = function(mode, callback)
 {
 	if (mode < this._mode_callbacks.length)
@@ -1087,7 +1175,7 @@ function ToggledParameter(name, args)
 				self.receive(Math.abs(self._value - 1));
 			}
 		}
-	} 
+	}
 	this.update_control = function(value)
 	{
 		if(self._control){self._control.send(self._value ? self._onValue : self._offValue);}
@@ -1527,9 +1615,9 @@ ClipSlotComponent.prototype.constructor = ClipSlotComponent;
 ClipSlotComponent.prototype.update = function()
 {
 	this._value = this.isRecording ? this._session.colors().isRecordingColor :
-		this.isPlaying ? this._session.colors().isPlayingColor : 
+		this.isPlaying ? this._session.colors().isPlayingColor :
 		this.isQueued ? this._session.colors().isQueuedColor :
-		this.hasContent ? this._session.colors().hasContentColor : 
+		this.hasContent ? this._session.colors().hasContentColor :
 		this._session.colors().isEmptyColor;
 	this.notify();
 }
@@ -1642,8 +1730,8 @@ function SessionComponent(name, width, height, trackBank, _colors, mastertrack)
 	var self = this;
 	this._name = name;
 	this._grid = undefined;
-	this._colors = _colors||{'hasContentColor': colors.WHITE, 
-					'isPlayingColor':colors.GREEN, 
+	this._colors = _colors||{'hasContentColor': colors.WHITE,
+					'isPlayingColor':colors.GREEN,
 					'isQueuedColor' : colors.YELLOW,
 					'isRecordingColor' : colors.RED,
 					'isEmptyColor' : colors.OFF,
@@ -1901,19 +1989,19 @@ function SessionZoomComponent(name, session, width, height, _colors)
 	this.width = function(){return width}
 	this.height = function(){return height}
 	this._grid = undefined;
-	this._colors = _colors||{'hasContentColor': colors.WHITE, 
-					'isPlayingColor':colors.GREEN, 
+	this._colors = _colors||{'hasContentColor': colors.WHITE,
+					'isPlayingColor':colors.GREEN,
 					'isQueuedColor' : colors.YELLOW,
 					'isRecordingColor' : colors.RED,
 					'isEmptyColor' : colors.OFF,
 					'navColor' : colors.BLUE};
 	this._trackBank = host.createMainTrackBankSection(width*width, 0, height*height);
-	
+
 	this._update = function()
 	{
 		post('ZoomUpdate', this._trackOffset._value, this._sceneOffset._value);
 	}
-	
+
 	this._trackOffset = new Parameter(this._name + '_trackOffset', {num:0, javaObj:this._trackBank, monitor:'addTrackScrollPositionObserver'});
 	this._sceneOffset = new Parameter(this._name + '_sceneOffset', {num:0, javaObj:this._trackBank, monitor:'addSceneScrollPositionObserver'});
 
@@ -2070,7 +2158,7 @@ MixerComponent.prototype.set_verbose = function(val)
 /////////////////////////////////////////////////////////////////////////////
 //Component containing tracks from trackbank and their corresponding controls, values
 
-function ChannelStripComponent(name, num, track, num_sends, _colors) 
+function ChannelStripComponent(name, num, track, num_sends, _colors)
 {
 	var self = this;
 	this._name = name;
@@ -2081,8 +2169,8 @@ function ChannelStripComponent(name, num, track, num_sends, _colors)
 	this._device = track.createCursorDevice();
 	this._eqdevice;
 
-	this._colors = _colors||{'muteColor': colors.YELLOW, 
-					'soloColor':colors.CYAN, 
+	this._colors = _colors||{'muteColor': colors.YELLOW,
+					'soloColor':colors.CYAN,
 					'armColor' : colors.RED,
 					'selectColor' : colors.WHITE};
 
@@ -2307,7 +2395,7 @@ function DeviceComponent(name, size, Device)
 	this._nextPreset = new Parameter(this._name + '_Next_Preset', {javaObj:this._device, action:'switchToNextPreset'});
 	this._previousPreset = new Parameter(this._name + '_Previous_Preset', {javaObj:this._device, action:'switchToPreviousPreset'});
 	this._preset_creators = new ArrayParameter(this._name + '_Preset_Creators', {javaObj:this._device, value:[], monitor:'addPresetCreatorsObserver'});
-	this._preset_creator = new Parameter(this._name + '_Preset_Creator', {javaObj:this._device, monitor_text:'addPresetCreatorObserver'});	
+	this._preset_creator = new Parameter(this._name + '_Preset_Creator', {javaObj:this._device, monitor_text:'addPresetCreatorObserver'});
 	this._preset_name = new Parameter(this._name + '_Preset_Name', {javaObj:this._device, monitor_text:'addPresetNameObserver'});
 
 
@@ -2335,7 +2423,7 @@ function DeviceComponent(name, size, Device)
 				}
 			}
 		}
-		else 
+		else
 		{
 			if(self._size == self._parameter_controls.length)
 			{
@@ -2559,7 +2647,7 @@ function DrumRackComponent(name, _color)
 		this._noteMap[i] = [];
 	}
 	var cursorTrack = host.createCursorTrackSection(0, 0);
-	
+
 	//var cursorDevice = host.createCursorDevice();
 	this._drumPadBank = cursorDevice.createDrumPadBank(16);
 
@@ -2570,7 +2658,7 @@ function DrumRackComponent(name, _color)
 	{
 		post('drumPadBank.channelScrollPositionObserver', args);
 	}
-	
+
 	//this._drumPadBank.addChannelScrollPositionObserver(this._scrollPosition.receive, -1);
 
 	this._navUp = new ToggledParameter(this._name + '_NavUp', {num:0, javaObj:this._drumPadBank, action:'scrollChannelsPageUp'});
@@ -2626,7 +2714,7 @@ function DrumRackComponent(name, _color)
 			}
 		}
 	}
-	
+
 	this.notes_in_step = function(){return (self._stepsequencer && self._stepsequencer._edit_step._value> -1) ? self._stepsequencer.notes_in_step() : self._notes_in_step;}
 
 	this._set_seq_offset = function(button)
@@ -2648,7 +2736,7 @@ function DrumRackComponent(name, _color)
 			self._noteMap[i] = [];
 		}
 		if(self._grid instanceof Grid)
-		{	
+		{
 			//post('original upate', this.caller);
 			var notes_in_step = self.notes_in_step();
 			var selected = self._stepsequencer && self._select._value ? self._stepsequencer.key_offset._value : -1;
@@ -2720,7 +2808,7 @@ DrumRackComponent.prototype.assign_grid = function(grid)
 	//this._stepsequencer.assign_grid();
 	this._grid = grid;
 	if(this._grid instanceof Grid)
-	{	
+	{
 		this._grid.add_listener(this._button_press);
 		if(!(this._last_pressed_button instanceof Button))
 		{
@@ -3000,7 +3088,7 @@ function StepSequencerComponent(name, steps)
 		if(!self._flip._value)
 		{
 			if(button.pressed())
-			{	
+			{
 				//post('sequencer button pressed:', button._name);
 				var step = self._offset._value + button._x(self._grid) + self.width()*button._y(self._grid);  // + this.viewOffset();
 				self._cursorClip.toggleStep(step, self.key_offset._value, self._velocity_offset._value);
@@ -3055,7 +3143,7 @@ function StepSequencerComponent(name, steps)
 		{
 			var size = self._grid instanceof Grid ? self._grid.size() : self._last_grid_size;
 			self._offset.set_value(Math.floor(self.playingStep/size)*size)
-			
+
 		}
 		self.update();
 	}
@@ -3105,7 +3193,7 @@ function StepSequencerComponent(name, steps)
 				var color = isSelected ? self.Colors.Selected : isSet ?
 					(isPlaying ? self.Colors.PlayingOn : self.Colors.On) :
 					(isPlaying ? self.Colors.PlayingOff : self._flip._value ? self.Colors.Flipped : self.Colors.Off);
-				
+
 				button.send(color);
 
 			}
@@ -3259,7 +3347,7 @@ function AdaptiveInstrumentComponent(name, sizes, lcd)
 			self._stepsequencer._size_offset.set_value(obj._value);
 		}
 	}
-	this._quantization = new RadioComponent(this._name + '_Quantization', 0, 6, 3, this._on_quantization_changed, colors.YELLOW, colors.OFF); 
+	this._quantization = new RadioComponent(this._name + '_Quantization', 0, 6, 3, this._on_quantization_changed, colors.YELLOW, colors.OFF);
 
 	this._primary_instrument = new Parameter(this._name + '_PrimaryInstrumentListener', {javaObj:cursorTrack.getPrimaryInstrument()});
 	cursorTrack.getPrimaryInstrument().addNameObserver(11, 'None', this._primary_instrument.receive);
@@ -3400,7 +3488,7 @@ AdaptiveInstrumentComponent.prototype.set_sizes = function(sizes)
 AdaptiveInstrumentComponent.prototype.assign_grid = function(grid)
 {
 	this._grid = grid;
-	this.update();	
+	this.update();
 }
 
 AdaptiveInstrumentComponent.prototype.assign_explicit_grids = function(drum_grid, keys_grid, drumseq_grid, keysseq_grid)
@@ -3486,7 +3574,7 @@ function FunSequencerComponent(name, steps)
 	var self = this;
 	this._pitch_range = 12;
 	this._pitches = [];
-	
+
 	for(var i = 0; i<steps; i++)
 	{
 		this._pitches[i] = new RangedParameter(this._name + '_Pitch_'+i, {range:128});
@@ -3567,7 +3655,7 @@ function FunSequencerComponent(name, steps)
 				var color = isSet ?
 					(isPlaying ? self.Colors.PlayingOn : self.Colors.On) :
 					(isPlaying ? self.Colors.PlayingOff : self.Colors.Off);
-				
+
 				button.send(color);
 			}
 		}
@@ -3646,7 +3734,7 @@ function FunSequencerComponent(name, steps)
 
 	this._pitch_range = 12;
 	this._pitches = [];
-	
+
 	for(var i = 0; i<steps; i++)
 	{
 		this._pitches[i] = new DelayedRangedParameter(this._name + '_Pitch_'+i, {range:127});
@@ -3751,7 +3839,7 @@ function FunSequencerComponent(name, steps)
 	}
 	this.octave_offset_dial.add_listener(this._on_octave_offset_dial_change);
 	this.key_offset_dial.add_listener(this._on_key_offset_dial_change);
-	
+
 	this.receive_zoom_grid = function(button)
 	{
 	}
@@ -3770,7 +3858,7 @@ function FunSequencerComponent(name, steps)
 		{
 			var size = self._grid instanceof Grid ? self._grid.size() : self._last_grid_size;
 			self._offset.set_value(Math.floor(self.playingStep/size)*size)
-			
+
 		}
 		self.update();
 	}
@@ -3856,7 +3944,7 @@ function FunSequencerComponent(name, steps)
 				var color = isSet ?
 					(isPlaying ? self.Colors.PlayingOn : self.Colors.On) :
 					(isPlaying ? self.Colors.PlayingOff : self.Colors.Off);
-				
+
 				button.send(color);
 			}
 		}
@@ -3883,8 +3971,8 @@ function FunSequencerComponent(name, steps)
 	this._edit_step = new RangedParameter(this._name + '_Edit_Step', {value:-1});
 	this._triplet = new ToggledParameter(this._name + '_Triplet_Enable', {value:1, onValue:colors.OFF, offValue:colors.RED});
 	this._add_note = new Parameter(this._name + '_addNote');
-	
-	
+
+
 	this._triplet.add_listener(this._onSizeChange);
 	this._flip.add_listener(this.update);
 	this._edit_step.add_listener(this.update);
@@ -4119,7 +4207,7 @@ function UserControl(name, control)
 	this._javaControl= control;
 	this._javaControl.setLabel(this._name);
 
-	
+
 	this._onNameChanged = function(name){}//post('onNameChanged:', self._name, name);}
 	this._onValueDisplayChanged = function(value){}//post('onValueDisplayChanged:', self._name, value);}
 	this._onValueChanged = function(value)
@@ -4147,7 +4235,7 @@ function UserControl(name, control)
 	this._javaControl.addValueDisplayObserver(20, ' - ', this._onValueDisplayChanged);
 	this._javaControl.addValueObserver(128, this._onValueChanged);
 
-	
+
 }
 
 
@@ -4362,4 +4450,3 @@ NotificationDisplayComponent.prototype.set_priority = function(priority)
 {
 	this._last_priority = priority;
 }
-

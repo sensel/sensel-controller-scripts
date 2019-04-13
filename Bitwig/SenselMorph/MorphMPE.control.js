@@ -1,6 +1,6 @@
 // 0718 amounra : http://www.aumhaa.com
 
-loadAPI(5);
+loadAPI(7);
 host.setShouldFailOnDeprecatedUse(false);
 
 host.defineController("Sensel", "MorphMPE", "1.0", "aa49a7eb-d170-4b07-8a75-257278da7ca8");
@@ -23,8 +23,8 @@ else if (host.platformIsLinux())
 var script = this;
 var session;
 
-var DEBUG = false;	//post() doesn't work without this
-var VERSION = '1 .1';
+var DEBUG = true;	//post() doesn't work without this
+var VERSION = '1.1';
 var VERBOSE = false;
 
 var CHECK_MAPS =          "F000021D007003014500200000000000000000F7";
@@ -35,11 +35,17 @@ var DRUM_OVERLAY = 				"F0 00 02 1D 00 05 00 00 01 01 F7";
 var THUNDER_OVERLAY = 		"F0 00 02 1D 00 10 00 00 01 01 F7";
 var NO_OVERLAY = 					"F0 00 02 1D 00 0E 00 00 01 01 F7";
 
-var THUNDER_TRANSLATION_MAP = [];
-for(var i = 0; i < 128; i++)
-{
-	THUNDER_TRANSLATION_MAP[i] = i > 12 ? i : -1;
+var override_noteInput = false;
+
+
+var ALLOFFMAP = [];
+for(var i = 0;i<128;i++){
+	ALLOFFMAP.push(-1);
 }
+
+
+
+
 load("Prototypes.js");
 
 function MorphDrumRackComponent(name, _color)
@@ -488,7 +494,9 @@ function init()
 	host.getMidiInPort(0).setMidiCallback(onMidi);
 	host.getMidiInPort(0).setSysexCallback(onSysex);
 	initialize_noteInput();
-	initialize_prototypes();
+	initialize_discrete_ports();
+	initialize_morph_prototypes();
+	initialize_settings();
 	initialize_surface();
 	setup_controls();
 	resetAll();
@@ -502,7 +510,8 @@ function init()
 	setup_empty_note_scales();
 	setup_transport();
 	setup_tasks();
-	setup_usermodes();
+	//setup_usermodes();
+	setup_discrete_modes();
 	setup_modes();
 	setup_notifications();
 	setup_listeners();
@@ -519,6 +528,94 @@ function initialize_noteInput()
 	noteInput.setUseExpressiveMidi(true, 0, 24);
 	noteInput.setShouldConsumeEvents(false);
 
+}
+
+function initialize_discrete_ports()
+{
+	post('initialize_discrete_ports'); // productionDiscretePort._value, keysDiscretePort._value, drumDiscretePort._value, thunderDiscretePort._value);
+	/*productionInput = {'setKeyTranslationTable':function(){}};
+	keysInput = {'setKeyTranslationTable':function(){}};
+	drumInput = {'setKeyTranslationTable':function(){}};
+	thunderInput = {'setKeyTranslationTable':function(){}};*/
+	initialize_production_port();
+	initialize_keys_port();
+	initialize_drum_port();
+	initialize_thunder_port();
+}
+
+function initialize_production_port()
+{
+	/*post('initialize_production_port', productionDiscretePort._value);
+	if(productionDiscretePort._value=='enabled')
+	{*/
+		post('creating Production Discrete Port...');
+		productionInput = host.getMidiInPort(0).createNoteInput("MorphProduction", "??????");
+		productionInput.setUseExpressiveMidi(true, 0, 24);
+		productionInput.setShouldConsumeEvents(false);
+		productionInput.setKeyTranslationTable(ALLOFFMAP);
+	//}
+}
+
+function initialize_keys_port()
+{
+	/*post('initialize_keys_port', keysDiscretePort._value);
+	if(keysDiscretePort._value=='enabled')
+	{*/
+		post('creating Keys Discrete Port...');
+		keysInput = host.getMidiInPort(0).createNoteInput("MorphKeys", "??????");
+		keysInput.setUseExpressiveMidi(true, 0, 24);
+		keysInput.setShouldConsumeEvents(false);
+		keysInput.setKeyTranslationTable(ALLOFFMAP);
+	//}
+}
+
+function initialize_drum_port()
+{
+	/*post('initialize_drum_port', drumDiscretePort._value);
+	if(drumDiscretePort._value=='enabled')
+	{*/
+		post('creating Drum Discrete Port...');
+		drumInput = host.getMidiInPort(0).createNoteInput("MorphDrum", "??????");
+		drumInput.setUseExpressiveMidi(true, 0, 24);
+		drumInput.setShouldConsumeEvents(false);
+		drumInput.setKeyTranslationTable(ALLOFFMAP);
+	//}
+}
+
+function initialize_thunder_port()
+{
+	/*post('initialize_thunder_port', thunderDiscretePort._value);
+	if(thunderDiscretePort._value=='enabled')
+	{*/
+		post('creating Thunder Discrete Port...');
+		thunderInput = host.getMidiInPort(0).createNoteInput("MorphThunder", "??????");
+		thunderInput.setUseExpressiveMidi(true, 0, 24);
+		thunderInput.setShouldConsumeEvents(false);
+		thunderInput.setKeyTranslationTable(ALLOFFMAP);
+	//}
+}
+
+function initialize_settings()
+{
+	restartButton = new Setting('Script', 'signal', {category:'Global', action:'Restart'});
+	restartButton.set_callback(function(){host.restart();});
+	productionDiscretePort = new Setting('Production', 'enum', {category:'Exclusive Ports', options:['on', 'off'], initialValue:'off'});
+	//productionDiscretePort.set_callback(initialize_production_port);
+	productionDiscretePort.set_callback(update_main_modes);
+	keysDiscretePort = new Setting('Keys', 'enum', {category:'Exclusive Ports', options:['on', 'off'], initialValue:'off'});
+	//keysDiscretePort.set_callback(initialize_keys_port);
+	keysDiscretePort.set_callback(update_main_modes);
+	drumDiscretePort = new Setting('Drum', 'enum', {category:'Exclusive Ports', options:['on', 'off'], initialValue:'off'});
+	//drumDiscretePort.set_callback(initialize_drum_port);
+	drumDiscretePort.set_callback(update_main_modes);
+	thunderDiscretePort = new Setting('Thunder', 'enum', {category:'Exclusive Ports', options:['on', 'off'], initialValue:'off'});
+	//thunderDiscretePort.set_callback(initialize_thunder_port);
+	thunderDiscretePort.set_callback(update_main_modes);
+
+	/*productionDiscretePort = new Setting('productionDiscretePort', 'boolean', {category:'exclusivePorts', initialValue:'false'});
+	keysDiscretePort = new Setting('keysDiscretePort', 'boolean', {category:'exclusivePorts', initialValue:'false'});
+	drumDiscretePort = new Setting('drumDiscretePort', 'boolean', {category:'exclusivePorts', initialValue:'false'});
+	thunderDiscretePort = new Setting('thunderDiscretePort', 'boolean', {category:'exclusivePorts', initialValue:'false'});*/
 }
 
 function initialize_surface()
@@ -695,12 +792,107 @@ function setup_tasks()
 	tasks = new TaskServer(script, 100);
 }
 
+function setup_discrete_modes()
+{
+	productionDiscreetPage = new Page('productionDiscreetPage');
+	productionDiscreetPage.enter_mode = function()
+	{
+		if(productionDiscretePort._value=='on')
+		{
+			post('setting production discrete enabled')
+			override_noteInput = true;
+			productionInput.setKeyTranslationTable(Note_Translation_Table);
+			noteInput.setKeyTranslationTable(ALLOFFMAP);
+		}
+		post('productionDiscreetPage entered');
+	}
+	productionDiscreetPage.exit_mode = function()
+	{
+		override_noteInput = false;
+		productionInput.setKeyTranslationTable(ALLOFFMAP);
+		noteInput.setKeyTranslationTable(Note_Translation_Table);
+		post('productionDiscreetPage exited');
+
+	}
+
+	keysDiscreetPage = new Page('keysDiscreetPage');
+	keysDiscreetPage.enter_mode = function()
+	{
+		if(keysDiscretePort._value=='on')
+		{
+			override_noteInput = true;
+			keysInput.setKeyTranslationTable(Note_Translation_Table);
+			noteInput.setKeyTranslationTable(ALLOFFMAP);
+		}
+		post('keysDiscreetPage entered');
+
+
+	}
+	keysDiscreetPage.exit_mode = function()
+	{
+		override_noteInput = false;
+		keysInput.setKeyTranslationTable(ALLOFFMAP);
+		noteInput.setKeyTranslationTable(Note_Translation_Table);
+		post('keysDiscreetPage exited');
+
+	}
+
+	drumDiscreetPage = new Page('drumDiscreetPage');
+	drumDiscreetPage.enter_mode = function()
+	{
+		if(drumDiscretePort._value=='on')
+		{
+			override_noteInput = true;
+			drumInput.setKeyTranslationTable(Note_Translation_Table);
+			noteInput.setKeyTranslationTable(ALLOFFMAP);
+		}
+		post('drumDiscreetPage entered');
+
+
+	}
+	drumDiscreetPage.exit_mode = function()
+	{
+		override_noteInput = false;
+		drumInput.setKeyTranslationTable(ALLOFFMAP);
+		noteInput.setKeyTranslationTable(Note_Translation_Table);
+		post('drumDiscreetPage exited');
+
+	}
+
+	thunderDiscreetPage = new Page('thunderDiscreetPage');
+	thunderDiscreetPage.enter_mode = function()
+	{
+		if(thunderDiscretePort._value=='on')
+		{
+			override_noteInput = true;
+			thunderInput.setKeyTranslationTable(Note_Translation_Table);
+			noteInput.setKeyTranslationTable(ALLOFFMAP);
+		}
+		post('thunderDiscreetPage entered');
+
+
+	}
+	thunderDiscreetPage.exit_mode = function()
+	{
+		override_noteInput = false;
+		thunderInput.setKeyTranslationTable(ALLOFFMAP);
+		noteInput.setKeyTranslationTable(Note_Translation_Table);
+		post('thunderDiscreetPage exited');
+	}
+
+}
+
 function setup_usermodes()
 {
 	userInput = host.getMidiInPort(0).createNoteInput("MorphUser", "80????", "90????", "D0????", "E0????");
-	userbank = new UserBankComponent('UserBank', 127, userInput);
+	script['userbank'] = new UserBankComponent('UserBank', 127, userInput);
 	userInput.setUseExpressiveMidi(true, 0, 24);
 	userInput.setShouldConsumeEvents(false);
+	thunderInput = host.getMidiInPort(0).createNoteInput("MorphThunder", "??????");
+	script['thunderbank'] = new UserBankComponent('ThunderBank', 127, thunderInput);
+	thunderInput.setUseExpressiveMidi(true, 0, 24);
+	thunderInput.setShouldConsumeEvents(false);
+
 
 	thunderUserPage = new Page('ThunderUserPage');
 	thunderUserPage.enter_mode = function()
@@ -708,19 +900,19 @@ function setup_usermodes()
 		post('thunderUserPage entered');
 		for(var i=0;i<thunderbuttons.length;i++)
 		{
-			userbank.set_control(i, thunderbuttons[i]);
+			thunderbank.set_control(i, thunderbuttons[i]);
 		}
-		userbank.set_enabled(true);
+		thunderbank.set_enabled(true);
 	}
 	thunderUserPage.exit_mode = function()
 	{
-		post('userPage exited');
-		thunderUserPage.set_enabled(false);
+		post('thunderUserPage exited');
+		thunderbank.set_enabled(false);
 		for(var i=0;i<127;i++)
 		{
-			userbank.set_control(i);
+			thunderbank.set_control(i);
 		}
-		userbank.set_enabled(false);
+		thunderbank.set_enabled(false);
 	}
 
 	userPage = new Page('UserPage');
@@ -798,9 +990,11 @@ function setup_modes()
 		empty_note_scales._noteOffset.set_inc_dec_buttons(emptybutton[1], emptybutton[0]);
 		mainPage.active = true;
 		mainPage.set_shift_button(button[7]);
+		productionDiscreetPage.enter_mode();
 	}
 	mainPage.exit_mode = function()
 	{
+		productionDiscreetPage.exit_mode();
 		drumrack.assign_grid();
 		scales.assign_grid();
 		empty_note_scales._noteOffset.set_inc_dec_buttons();
@@ -838,7 +1032,7 @@ function setup_modes()
 			session._navRt.set_control(button[1]);
 			drumrack._noteOffset.set_inc_dec_buttons(pianokey[1], pianokey[0]);
 			scales._noteOffset.set_inc_dec_buttons(pianokey[12], pianokey[11]);
-			userPage.enter_mode()
+			//userPage.enter_mode()
 
 		}
 		else
@@ -851,7 +1045,7 @@ function setup_modes()
 			transport._record.set_control();
 			transport._stop.set_control();
 			mixer.selectedstrip()._stop.set_control();
-			userPage.exit_mode();
+			//userPage.exit_mode();
 			mainPage.enter_mode();
 		}
 	}
@@ -871,9 +1065,14 @@ function setup_modes()
 		pianoscales.assign_grid(pianogrid);
 		pianoscales._noteOffset.set_inc_dec_buttons(pianobutton[1], pianobutton[0]);
 		keysPage.set_shift_button(button[7]);
+		keysDiscreetPage.enter_mode();
 	}
 	keysPage.exit_mode = function()
 	{
+		keysDiscreetPage.exit_mode();
+		override_noteInput = false;
+		keysInput.setKeyTranslationTable(ALLOFFMAP);
+		noteInput.setKeyTranslationTable(Note_Translation_Table);
 		keysPage.set_shift_button();
 		mixer.set_nav_controls();
 		mixer.selectedstrip()._send[0].set_control();
@@ -924,9 +1123,12 @@ function setup_modes()
 		drumrack.assign_grid(grid);
 		drumPage.set_shift_button(button[7]);
 		recalculate_translation_map = true;
+		morphFlush();
+		drumDiscreetPage.enter_mode();
 	}
 	drumPage.exit_mode = function()
 	{
+		drumDiscreetPage.exit_mode();
 		drumPage.set_shift_button();
 		drumrack.assign_grid();
 		mixer.set_nav_controls();
@@ -970,7 +1172,7 @@ function setup_modes()
 		transport._stop.set_control(button[5]);
 		transport._overdub.set_control(button[6]);
 		device.set_parameter_controls(thunderdial);
-		thunderUserPage.enter_mode();
+		//thunderUserPage.enter_mode();
 		for(var i=0; i<NOTE_OBJECTS.length;i++)
 		{
 			if(NOTE_OBJECTS[i].set_translation)
@@ -978,14 +1180,16 @@ function setup_modes()
 				NOTE_OBJECTS[i].set_translation(i > 12 ? i : -1);
 			}
 		}
+		//allow data to be forwarded to thunderInput instead of noteInput
 		thunderPage.set_shift_button(button[7]);
+		thunderDiscreetPage.enter_mode();
 		thunderPage.active = true;
 
 
 	}
 	thunderPage.exit_mode = function()
 	{
-		thunderUserPage.exit_mode();
+		thunderDiscreetPage.exit_mode();
 		device.set_parameter_controls();
 		mixer.set_nav_controls();
 		mixer.selectedstrip()._send[0].set_control();
@@ -1041,6 +1245,7 @@ function setup_fixed_controls()
 function setup_listeners()
 {
 	//key[0].add_listener(function(obj){post('key[0]._value:', obj._value);});
+	//restartButton.add_listener(});
 }
 
 function exit()
@@ -1104,7 +1309,77 @@ function onSysex(data)
 
 function display_mode(){}
 
+
 function setupTests()
 {
-	//post('thunderbuttons:', thunderbuttons.length, thunderbuttons[0]._name, thunderbuttons[15]._name);
+}
+
+function update_main_modes()
+{
+	if(MainModes)
+	{
+		MainModes.restore_mode();
+	}
+}
+
+function morphFlush()
+{
+	//tasks._run();
+	post('morphFlush')
+	for(var type in midiBuffer)
+	{
+		var buf = midiBuffer[type];
+		for(var index in buf)
+		{
+			var Event = buf[index];
+			Event[0]._send(Event[1]);
+		}
+	}
+	midiBuffer = {NONE_TYPE:{},CC_TYPE:{},NOTE_TYPE:{}};
+	if(recalculate_translation_map)
+	{
+		post('recalculate_translation_map:');
+		if(override_noteInput)
+		{
+			post('recalculate_translation_map: mode:', MainModes.current_mode());
+			switch(MainModes.current_mode())
+			{
+				case 1:
+					productionInput.setKeyTranslationTable(Note_Translation_Table);
+					productionInput.setVelocityTranslationTable(Velocity_Translation_Table);
+					break;
+				case 2:
+					keysInput.setKeyTranslationTable(Note_Translation_Table);
+					keysInput.setVelocityTranslationTable(Velocity_Translation_Table);
+					break;
+				case 3:
+					drumInput.setKeyTranslationTable(Note_Translation_Table);
+					drumInput.setVelocityTranslationTable(Velocity_Translation_Table);
+					break;
+				case 4:
+					thunderInput.setKeyTranslationTable(Note_Translation_Table);
+					thunderInput.setVelocityTranslationTable(Velocity_Translation_Table);
+					break;
+			}
+			recalculate_translation_map = false;
+		}
+		else
+		{
+			//post('Note_Translation_Table:', Note_Translation_Table, override_noteInput);
+			noteInput.setKeyTranslationTable(Note_Translation_Table);
+			noteInput.setVelocityTranslationTable(Velocity_Translation_Table);
+			recalculate_translation_map = false;
+		}
+	}
+}
+
+//this function initializes all the prototype core processes.  It should be called during init().
+function initialize_morph_prototypes()
+{
+	registerControlDicts();
+	tasks = new TaskServer(script, 100);
+	flash = new FlashTask();
+	tasks.addTask(flash.update, null, 1, true, 'Flash');
+ 	//host.scheduleTask(flush, null, 100);
+	host.scheduleTask(doObject(this, morphFlush), 100);
 }
