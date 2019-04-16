@@ -72,6 +72,14 @@ MIDI_NOTE_OFF_STATUS = 128
 MIDI_CC_STATUS = 176
 MIDI_PB_STATUS = 224
 
+CHECK_MAPS = tuple([240, 0, 2, 29, 0, 112, 3, 1, 69, 0, 32, 0, 0, 0, 0, 0, 0, 0, 247])
+MAGNET_VALUES_CALL = tuple([240, 0, 2, 29, 0, 112, 3, 1, 114, 2, 247])
+PIANO_OVERLAY = tuple([240, 0, 2, 29, 0, 3, 0, 0, 1, 1, 247])
+PRODUCTION_OVERLAY = tuple([240, 0, 2, 29, 0, 4, 0, 0, 1, 1, 247])
+DRUM_OVERLAY = tuple([240, 0, 2, 29, 0, 5, 0, 0, 1, 1, 247])
+THUNDER_OVERLAY = tuple([240, 0, 2, 29, 0, 16, 0, 0, 1, 1, 247])
+NO_OVERLAY = tuple([240, 0, 2, 29, 0, 14, 0, 0, 1, 1, 247])
+
 
 class MomentaryBehaviour(ModeButtonBehaviour):
 
@@ -299,15 +307,21 @@ class Morph(ControlSurface):
 			self._setup_translations()
 			self._setup_modes()
 		self._on_device_changed.subject = self._device_provider
-		self.log_message('<<<<<<<<<<<<<<<<<<<<<<<<< Morph log opened >>>>>>>>>>>>>>>>>>>>>>>>>')
-		self.show_message('Morph Control Surface Loaded')
+		self.log_message('<<<<<<<<<<<<<<<<<<<<<<<<< Morph '+VERSION+' log opened >>>>>>>>>>>>>>>>>>>>>>>>>')
+		self.show_message('Morph '+VERSION+' Control Surface Loaded')
 		self.schedule_message(2, self._init_surface)
 		#debug('device:', self._device._get_device())
 
 
-
 	def _init_surface(self):
-		self._main_modes.selected_mode = 'Main'
+		#self._main_modes.selected_mode = 'Main'
+		self._send_midi(CHECK_MAPS)
+		self._send_midi(MAGNET_VALUES_CALL)
+
+
+	def port_settings_changed(self):
+		super(Morph, self).port_settings_changed()
+		self._init_surface()
 
 
 	def _setup_controls(self):
@@ -321,34 +335,35 @@ class Morph(ControlSurface):
 		self._button = [ButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = CHANNEL, identifier = MORPH_BUTTONS[index], name = 'Button_' + str(index), skin = self._skin, resource_type = resource) for index in range(8)]
 		for button in self._button:
 			button.set_enabled = False
-		self._key = [MorphButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = KEY_CHANNEL, identifier = MORPH_KEYS[index], name = 'Key_' + str(index), skin = self._skin, resource_type = resource) for index in range(13)]
+		self._key = [MorphButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = KEY_CHANNEL, identifier = MORPH_KEYS[index], name = 'Key_' + str(index), skin = self._skin, resource_type = resource) for index in range(25)]
 		self._dials = [MorphEncoderElement(msg_type = MIDI_CC_TYPE, channel = CHANNEL, identifier = MORPH_DIALS[index], map_mode = Live.MidiMap.MapMode.absolute, name = 'Dial_' + str(index), resource_type = resource) for index in range(8)]
 		self._slider = [MorphEncoderElement(msg_type = MIDI_CC_TYPE, channel = CHANNEL, identifier = MORPH_SLIDERS[index], map_mode = Live.MidiMap.MapMode.absolute, name = 'Slider_' + str(index), resource_type = resource) for index in range(2)]
 		self._send_pressure = [MorphEncoderElement(msg_type = MIDI_CC_TYPE, channel = CHANNEL, identifier = MORPH_SEND_PRESSURE[index], map_mode = Live.MidiMap.MapMode.absolute, name = 'SendPressure_' + str(index), resource_type = resource) for index in range(2)]
+		self._thunder_slider = [MorphEncoderElement(msg_type = MIDI_CC_TYPE, channel = CHANNEL, identifier = MORPH_THUNDER_SLIDERS[index], map_mode = Live.MidiMap.MapMode.absolute, name = 'Slider_' + str(index), resource_type = resource) for index in range(6)]
 
 		self._pad_matrix = ButtonMatrixElement(name = 'PadMatrix', rows = self._pad)
 		self._dial_matrix = ButtonMatrixElement(name = 'DialMatrix', rows = [self._dials])
 		self._button_matrix = ButtonMatrixElement(name = 'ButtonMatrix', rows = [self._button])
-		self._key_matrix = ButtonMatrixElement(name = 'KeyMatrix', rows = [self._key])
+		self._key_matrix = ButtonMatrixElement(name = 'KeyMatrix', rows = [self._key[:14]])
 		self._key_shift_matrix = ButtonMatrixElement(name = 'KeyShiftMatrix', rows = [self._key[2:11]])
 		self._slider_matrix = ButtonMatrixElement(name = 'SliderMatrix', rows = [self._slider])
 		self._send_pressure_matrix = ButtonMatrixElement(name = 'SendAMatrix', rows = [self._send_pressure])
+		self._thunder_slider_matrix = ButtonMatrixElement(name = 'ThunderSliderMatrix', rows = [self._thunder_slider])
 		#self._shift_send_pressure_matrix = ButtonMatrixElement(name = 'ShiftSendMatrix', rows = [ [None, None, self._send_pressure[0], self._send_pressure[1]] ])
 
 		self._piano_button = [MorphButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = CHANNEL, identifier = PIANO_BUTTONS[index], name = 'PianoButton_' + str(index), skin = self._skin, resource_type = resource) for index in range(4)]
 		for button in self._piano_button:
 			button.enabled = False
-		self._piano_key = [MorphButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = PIANO_CHANNEL, identifier = PIANO_KEYS[index], name = 'PianoKey_' + str(index), skin = self._skin, resource_type = resource) for index in range(25)]
+		#self._piano_key = [MorphButtonElement(is_momentary = is_momentary, msg_type = MIDI_NOTE_TYPE, channel = PIANO_CHANNEL, identifier = PIANO_KEYS[index], name = 'PianoKey_' + str(index), skin = self._skin, resource_type = resource) for index in range(25)]
 
-		self._piano_matrix = ButtonMatrixElement(name = 'PianoMatrix', rows = [self._piano_key])
-		self._piano_session_matrix = ButtonMatrixElement(name = 'PianoSessionMatrix', rows = [self._piano_key[0:4], self._piano_key[4:8], self._piano_key[8:12], self._piano_key[12:16]])
+		self._piano_matrix = ButtonMatrixElement(name = 'PianoMatrix', rows = [self._key])
+		self._piano_session_matrix = ButtonMatrixElement(name = 'PianoSessionMatrix', rows = [self._key[0:4], self._key[4:8], self._key[8:12], self._key[12:16]])
 
 
 	def _setup_background(self):
 		self._background = BackgroundComponent()
 		self._background.layer = Layer(priority = 1, pads = self._pad_matrix, buttons = self._button_matrix, keys = self._key_matrix, dials = self._dial_matrix, sliders = self._slider_matrix)
 		self._background.set_enabled(False)
-
 
 
 	def _setup_drum_group(self):
@@ -398,6 +413,12 @@ class Morph(ControlSurface):
 		self._device_parameters.layer = Layer(priority = 2, parameter_controls = self._dial_matrix)
 		self._device.set_enabled(False)
 		self._device_parameters.set_enabled(False)
+
+		self._device2 = MorphDeviceComponent(device_decorator_factory = DeviceDecoratorFactory(), banking_info = BankingInfo(self.bank_definitions), device_provider = self._device_provider, device_bank_registry = DeviceBankRegistry())
+		self._device_parameters2 = DeviceParameterComponent(self._device2)
+		self._device_parameters2.layer = Layer(priority = 2, parameter_controls = self._thunder_slider_matrix)
+		self._device2.set_enabled(False)
+		self._device_parameters2.set_enabled(False)
 
 
 	def _setup_session(self):
@@ -452,29 +473,53 @@ class Morph(ControlSurface):
 
 
 	def _setup_modes(self):
+		self._production_modes = ModesComponent(name = 'ProductionModes')
+		self._production_modes.add_mode('Main', [self._mixer, self._mixer._selected_strip.main_layer, self._viewcontrol, self._drum_group, self._drum_group.main_layer, self._keys_group, self._keys_group.main_layer, self._device, self._device_parameters, self._transport, self._assign_crossfader])
+		self._production_modes.add_mode('Shift', [self._mixer, self._mixer._selected_strip.shift_layer, self._session, self._session_navigation,  self._drum_group, self._drum_group.nav_layer, self._keys_group, self._keys_group.shift_layer, self._deassign_crossfader, self._recorder, self._translations], behaviour = MomentaryBehaviour())
+		self._production_modes.layer = Layer(Shift_button = self._button[7])
+		self._production_modes.selected_mode = 'Main'
+		self._production_modes.set_enabled(False)
+
+		self._piano_modes = ModesComponent(name = 'PianoModes')
+		self._piano_modes.add_mode('Main', [self._piano_group, self._piano_group.main_layer, self._mixer, self._mixer._selected_strip.main_layer, self._viewcontrol,  self._device, self._device_parameters, self._transport, self._assign_crossfader])
+		self._piano_modes.add_mode('Shift', [self._mixer, self._mixer._selected_strip.shift_layer, self._session2, self._session_navigation, self._recorder], behaviour = MomentaryBehaviour())
+		self._piano_modes.layer = Layer(Shift_button = self._button[7])
+		self._piano_modes.selected_mode = 'Main'
+		self._piano_modes.set_enabled(False)
+
+		self._drumpad_modes = ModesComponent(name = 'DrumpadModes')
+		self._drumpad_modes.add_mode('Main', [self._mixer, self._mixer._selected_strip.main_layer, self._viewcontrol, self._drum_group, self._drum_group.main_layer, self._transport, self._assign_crossfader])
+		self._drumpad_modes.add_mode('Shift', [self._mixer, self._mixer._selected_strip.shift_layer,  self._drum_group, self._drum_group.nav_layer, self._recorder], behaviour = MomentaryBehaviour())
+		self._drumpad_modes.layer = Layer(Shift_button = self._button[7])
+		self._drumpad_modes.selected_mode = 'Main'
+		self._drumpad_modes.set_enabled(False)
+
+		self._thunder_modes = ModesComponent(name = 'ThunderModes')
+		self._thunder_modes.add_mode('Main', [self._mixer, self._mixer._selected_strip.main_layer, self._viewcontrol,  self._transport, self._assign_crossfader, self._device2, self._device_parameters2])
+		self._thunder_modes.add_mode('Shift', [self._mixer, self._mixer._selected_strip.shift_layer, self._recorder, self._device2, self._device_parameters2], behaviour = MomentaryBehaviour())
+		self._thunder_modes.layer = Layer(Shift_button = self._button[7])
+		self._thunder_modes.selected_mode = 'Main'
+		self._thunder_modes.set_enabled(False)
+
 		self._main_modes = ModesComponent(name = 'MainModes')
 		self._main_modes.add_mode('disabled', self._background)
-		self._main_modes.add_mode('Main', [self._piano_group, self._piano_group.main_layer, self._mixer, self._mixer._selected_strip.main_layer, self._viewcontrol, self._drum_group, self._drum_group.main_layer, self._keys_group, self._keys_group.main_layer, self._device, self._device_parameters, self._transport, self._assign_crossfader, self._report_mode])
-		self._main_modes.add_mode('Shift', [self._mixer, self._mixer._selected_strip.shift_layer, self._session, self._session2, self._session_navigation,  self._drum_group, self._drum_group.nav_layer, self._keys_group, self._keys_group.shift_layer, self._deassign_crossfader, self._recorder, self._translations, self._report_mode], behaviour = MomentaryBehaviour())
-		self._main_modes.layer = Layer(Shift_button = self._button[7])
-		self._main_modes.set_enabled(True)
+		self._main_modes.add_mode('ProductionMode', [self._production_modes])
+		self._main_modes.add_mode('PianoMode', [self._piano_modes])
+		self._main_modes.add_mode('DrumpadMode', [self._drumpad_modes])
+		self._main_modes.add_mode('ThunderMode', [self._thunder_modes])
+
 		self._report_mode.subject = self._main_modes
 		self._main_modes.selected_mode = 'disabled'
 
 
-
-
-
 	@listens('selected_mode')
 	def _report_mode(self, *a, **k):
-		debug('Mode:', self._main_modes.selected_mode)
-
+		debug('Modes:', self._main_modes.selected_mode, self._production_modes.selected_mode, self._piano_modes.selected_mode, self._drumpad_modes.selected_mode, self._thunder_modes.selected_mode)
 
 
 	def _can_auto_arm_track(self, track):
 		routing = track.current_input_routing
 		return routing == 'Ext: All Ins' or routing == 'All Ins' or routing.startswith('Sensel') or routing.startswith('Morph')
-
 
 
 	@listens('device')
@@ -483,14 +528,19 @@ class Morph(ControlSurface):
 		self._drum_group.set_drum_group_device(self._device_provider.device)
 
 
-
 	def disconnect(self):
 		self.log_message('<<<<<<<<<<<<<<<<<<<<<<<<< Morph log closed >>>>>>>>>>>>>>>>>>>>>>>>>')
 		super(Morph, self).disconnect()
 
 
+	def process_midi_bytes(self, midi_bytes, midi_processor):
+		super(Morph, self).process_midi_bytes(midi_bytes, midi_processor)
+		if midi.is_sysex(midi_bytes):
+			self.handle_sysex(midi_bytes)
+
+
 	def handle_sysex(self, midi_bytes):
-		#debug('sysex: ', str(midi_bytes))
+		debug('sysex: ', str(midi_bytes))
 		#debug('matching:', midi_bytes[1:5], 'to', tuple([0, 1, 97]  + [self._sysex_id]))
 		if len(midi_bytes)==9 and midi_bytes[1:5] == tuple([0, 1, 97]  + [self._sysex_id]):
 			if not self._connected:
@@ -498,6 +548,22 @@ class Morph(ControlSurface):
 				self._connected = True
 				self._initialize_hardware()
 				self._initialize_script()
+		if len(midi_bytes)==11:
+			if midi_bytes == PIANO_OVERLAY:
+				debug('piano overlay...')
+				self._main_modes.selected_mode = 'PianoMode'
+			elif midi_bytes == PRODUCTION_OVERLAY:
+				debug('production overlay...')
+				self._main_modes.selected_mode = 'ProductionMode'
+			elif midi_bytes == DRUM_OVERLAY:
+				debug('drum overlay...')
+				self._main_modes.selected_mode = 'DrumpadMode'
+			elif midi_bytes == THUNDER_OVERLAY:
+				debug('thunder overlay...')
+				self._main_modes.selected_mode = 'ThunderMode'
+			elif midi_bytes == NO_OVERLAY:
+				debug('no overlay...')
+				self._main_modes.selected_mode = 'disabled'
 
 
 #a

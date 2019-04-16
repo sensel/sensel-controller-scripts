@@ -13,7 +13,7 @@ class MonoColor(Color):
 			super(MonoColor, self).draw(interface)
 		except:
 			super(MonoColor, self).draw(interface)
-	
+
 
 class LividRGB:
 
@@ -27,23 +27,27 @@ class LividRGB:
 	BLUE = MonoColor(7)
 
 
-CHANNEL = 1
+VERSION = '1.1'
 
-KEY_CHANNEL = 2
+CHANNEL = 0
+
+KEY_CHANNEL = 0
 
 DRUM_TRANSLATION_CHANNEL = 9
 
 USER_CHANNEL = 14
 
-PIANO_CHANNEL = 3
+PIANO_CHANNEL = 0
 
 MORPH_PADS = [[48, 49, 50, 51], [44, 45, 46, 47], [40, 41, 42, 43], [36, 37, 38, 39]]
 
-MORPH_KEYS = [note for note in range(60, 73)]
+MORPH_KEYS = [note for note in range(60, 85)]
 
 MORPH_BUTTONS = [index for index in range(1,9)]
 
 MORPH_SLIDERS = [17, 18]
+
+MORPH_THUNDER_SLIDERS = [21, 22, 23, 24, 25, 26]
 
 MORPH_DIALS = [index for index in range(9, 17)]
 
@@ -51,7 +55,7 @@ MORPH_SEND_PRESSURE = [19, 20]
 
 PIANO_BUTTONS = [9, 10, 11, 12]
 
-PIANO_KEYS = [note for note in range(60, 85)]
+#PIANO_KEYS = [note for note in range(60, 85)]
 
 CHANNELS = ['Ch. 2', 'Ch. 3', 'Ch. 4', 'Ch. 5', 'Ch. 6', 'Ch. 7', 'Ch. 8', 'Ch. 9', 'Ch. 10', 'Ch. 11', 'Ch. 12', 'Ch. 13', 'Ch. 14']
 
@@ -68,7 +72,7 @@ class MorphColors:
 		Off = LividRGB.OFF
 		Disabled = LividRGB.OFF
 		Alert = LividRGB.WHITE
-	
+
 
 	class Transport:
 		OverdubOn = LividRGB.RED
@@ -77,7 +81,7 @@ class MorphColors:
 		PlayOn = LividRGB.GREEN
 		StopOn = LividRGB.BLUE
 		StopOff = LividRGB.OFF
-	
+
 
 	class Session:
 		StopClipTriggered = LividRGB.BLUE
@@ -95,7 +99,7 @@ class MorphColors:
 		NavigationButtonOn = LividRGB.BLUE
 		PageNavigationButtonOn = LividRGB.CYAN
 		Empty = LividRGB.OFF
-	
+
 
 	class LoopSelector:
 		Playhead = LividRGB.YELLOW
@@ -104,7 +108,7 @@ class MorphColors:
 		SelectedPage = LividRGB.WHITE
 		InsideLoop = LividRGB.CYAN
 		PlayheadRecord = LividRGB.RED
-	
+
 
 	class DrumGroup:
 		PadAction = LividRGB.WHITE
@@ -119,7 +123,7 @@ class MorphColors:
 		PadSoloedSelected = LividRGB.BLUE
 		PadInvisible = LividRGB.OFF
 		PadAction = LividRGB.RED
-	
+
 
 	class Mixer:
 		SoloOn = LividRGB.CYAN
@@ -133,13 +137,13 @@ class MorphColors:
 		StopClip = LividRGB.BLUE
 		SelectedOn = LividRGB.BLUE
 		SelectedOff = LividRGB.OFF
-	
+
 
 	class Recording:
 		On = LividRGB.RED
 		Off = LividRGB.RED
 		Transition = LividRGB.RED
-	
+
 
 	class Recorder:
 		On = LividRGB.WHITE
@@ -154,7 +158,7 @@ class MorphColors:
 		FixedNotAssigned = LividRGB.OFF
 		OverdubOn = LividRGB.RED
 		OverdubOff = LividRGB.RED
-	
+
 
 	class Device:
 		NavOn = LividRGB.MAGENTA
@@ -165,11 +169,8 @@ class MorphColors:
 		ChainNavOff = LividRGB.OFF
 		ContainNavOn = LividRGB.CYAN
 		ContainNavOff = LividRGB.OFF
-	
 
 
-	
+
+
 ## a
-
-
-
