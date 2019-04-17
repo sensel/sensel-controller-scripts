@@ -192,7 +192,7 @@ function flush()
 function flush()
 {
 	//tasks._run();
-	post('flush')
+	//post('flush')
 	for(var type in midiBuffer)
 	{
 		var buf = midiBuffer[type];

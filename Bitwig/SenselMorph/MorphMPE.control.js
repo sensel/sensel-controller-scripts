@@ -23,8 +23,8 @@ else if (host.platformIsLinux())
 var script = this;
 var session;
 
-var DEBUG = true;	//post() doesn't work without this
-var VERSION = '1.1';
+var DEBUG = false;	//post() doesn't work without this
+var VERSION = "1.1";
 var VERBOSE = false;
 
 var CHECK_MAPS =          "F000021D007003014500200000000000000000F7";
@@ -1092,10 +1092,16 @@ function setup_modes()
 		{
 			pianoscales.assign_grid();
 			pianoSessionPage.enter_mode();
+			transport._stop.set_control();
+			mixer.selectedstrip()._send[0].set_control();
+			mixer.selectedstrip()._send[1].set_control();
 			mixer.selectedstrip()._stop.set_control(button[5]);
+			transport._overdub.set_control();
+			//transport._record.set_control(button[6]);
 			session._record_clip.set_control(button[6]);
 			session._navLt.set_control(button[0]);
 			session._navRt.set_control(button[1]);
+
 		}
 		else
 		{
@@ -1145,7 +1151,11 @@ function setup_modes()
 		post('drumPage updated');
 		if(drumPage._shifted)
 		{
+			transport._stop.set_control();
+			mixer.selectedstrip()._send[0].set_control();
+			mixer.selectedstrip()._send[1].set_control();
 			mixer.selectedstrip()._stop.set_control(button[5]);
+			transport._overdub.set_control();
 			session._record_clip.set_control(button[6]);
 			session._navLt.set_control(button[0]);
 			session._navRt.set_control(button[1]);
@@ -1213,7 +1223,11 @@ function setup_modes()
 		post('thunderPage updated');
 		if(thunderPage._shifted)
 		{
+			transport._stop.set_control();
+			mixer.selectedstrip()._send[0].set_control();
+			mixer.selectedstrip()._send[1].set_control();
 			mixer.selectedstrip()._stop.set_control(button[5]);
+			transport._overdub.set_control();
 			session._record_clip.set_control(button[6]);
 			session._navLt.set_control(button[0]);
 			session._navRt.set_control(button[1]);
@@ -1325,7 +1339,7 @@ function update_main_modes()
 function morphFlush()
 {
 	//tasks._run();
-	post('morphFlush')
+	//post('morphFlush')
 	for(var type in midiBuffer)
 	{
 		var buf = midiBuffer[type];
