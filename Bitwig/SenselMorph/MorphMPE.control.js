@@ -549,7 +549,7 @@ function initialize_production_port()
 	if(productionDiscretePort._value=='enabled')
 	{*/
 		post('creating Production Discrete Port...');
-		productionInput = host.getMidiInPort(0).createNoteInput("MorphProduction", "??????");
+		productionInput = host.getMidiInPort(0).createNoteInput("Production", "??????");
 		productionInput.setUseExpressiveMidi(true, 0, 24);
 		productionInput.setShouldConsumeEvents(false);
 		productionInput.setKeyTranslationTable(ALLOFFMAP);
@@ -562,7 +562,7 @@ function initialize_keys_port()
 	if(keysDiscretePort._value=='enabled')
 	{*/
 		post('creating Keys Discrete Port...');
-		keysInput = host.getMidiInPort(0).createNoteInput("MorphKeys", "??????");
+		keysInput = host.getMidiInPort(0).createNoteInput("Keys", "??????");
 		keysInput.setUseExpressiveMidi(true, 0, 24);
 		keysInput.setShouldConsumeEvents(false);
 		keysInput.setKeyTranslationTable(ALLOFFMAP);
@@ -575,7 +575,7 @@ function initialize_drum_port()
 	if(drumDiscretePort._value=='enabled')
 	{*/
 		post('creating Drum Discrete Port...');
-		drumInput = host.getMidiInPort(0).createNoteInput("MorphDrum", "??????");
+		drumInput = host.getMidiInPort(0).createNoteInput("Drum", "??????");
 		drumInput.setUseExpressiveMidi(true, 0, 24);
 		drumInput.setShouldConsumeEvents(false);
 		drumInput.setKeyTranslationTable(ALLOFFMAP);
@@ -588,7 +588,7 @@ function initialize_thunder_port()
 	if(thunderDiscretePort._value=='enabled')
 	{*/
 		post('creating Thunder Discrete Port...');
-		thunderInput = host.getMidiInPort(0).createNoteInput("MorphThunder", "??????");
+		thunderInput = host.getMidiInPort(0).createNoteInput("Thunder", "??????");
 		thunderInput.setUseExpressiveMidi(true, 0, 24);
 		thunderInput.setShouldConsumeEvents(false);
 		thunderInput.setKeyTranslationTable(ALLOFFMAP);
