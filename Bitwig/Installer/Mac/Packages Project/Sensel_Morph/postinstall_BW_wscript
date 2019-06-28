@@ -9,10 +9,10 @@ cd $HOME/Documents/
 # -p will mkdir only if it doesn't exist
 mkdir -p "Sensel Morph"
 mkdir -p "Sensel Morph/Bitwig Studio Script Project"
-mkdir -p "Sensel Morph/Bitwig Overlay Maps"
+mkdir -p "Sensel Morph/Bitwig Overlay Maps/SenselMorph"
 cp -r "/Users/Shared/Project/" "Sensel Morph/Bitwig Studio Script Project"
 cp -r "/Users/Shared/Overlays/" "Sensel Morph/Bitwig Overlay Maps"
-cp -r "/Users/Shared/SenselMorph/" "Bitwig Studio/Controller Scripts"
+cp -r "/Users/Shared/SenselMorph/" "Bitwig Studio/Controller Scripts/SenselMorph"
 
 # set permissions for new folder
 sudo chown -R $USER "$HOME/Documents/Sensel Morph/"
