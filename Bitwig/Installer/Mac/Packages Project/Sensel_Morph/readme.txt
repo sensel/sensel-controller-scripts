@@ -1,3 +1,5 @@
+This README only applies to creating the installer, not installing the scripts. Hope that makes sense!
+
 In order to build installer, you’ll need to:
  
 * place a current copy of “SenselMorph” controller scripts at the destination location on your system (/Users/Shared/SenselMorph)

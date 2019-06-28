@@ -18,7 +18,8 @@ cp -r "/Users/Shared/SenselMorph/" "Bitwig Studio/Controller Scripts"
 sudo chown -R $USER "$HOME/Documents/Sensel Morph/"
 sudo chown -R $USER "$HOME/Documents/Sensel Morph/Bitwig Studio Script Project"
 sudo chown -R $USER "$HOME/Documents/Sensel Morph/Overlay Maps"
+sudo chown -R $USER "$HOME/Documents/Bitwig Studio/Controller Scripts/SenselMorph"
 
-rm -r /Users/Shared/Sensel_Morph
+rm -r /Users/Shared/SenselMorph
 rm -r /Users/Shared/Project
 rm -r /Users/Shared/Overlays
