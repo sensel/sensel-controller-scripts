@@ -3,7 +3,7 @@
 loadAPI(7);
 host.setShouldFailOnDeprecatedUse(false);
 
-host.defineController("Sensel", "MorphMPE-beta", "1.1", "aa49a7eb-d170-4b07-8a75-257278da7ca8");
+host.defineController("Sensel", "MorphMPE", "1.1", "aa49a7eb-d170-4b07-8a75-257278da7ca8");
 host.defineMidiPorts(1, 1);
 
 if (host.platformIsWindows())
