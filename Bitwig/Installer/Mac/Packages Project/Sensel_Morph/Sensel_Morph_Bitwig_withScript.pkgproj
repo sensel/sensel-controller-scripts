@@ -519,7 +519,7 @@
 				<key>USE_HFS+_COMPRESSION</key>
 				<false/>
 				<key>VERSION</key>
-				<string>0.7</string>
+				<string>0.8</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -538,17 +538,7 @@
 		<key>PROJECT_PRESENTATION</key>
 		<dict>
 			<key>BACKGROUND</key>
-			<dict>
-				<key>APPAREANCES</key>
-				<dict>
-					<key>DARK_AQUA</key>
-					<dict/>
-					<key>LIGHT_AQUA</key>
-					<dict/>
-				</dict>
-				<key>SHARED_SETTINGS_FOR_ALL_APPAREANCES</key>
-				<true/>
-			</dict>
+			<dict/>
 			<key>INSTALLATION TYPE</key>
 			<dict>
 				<key>HIERARCHIES</key>
