@@ -444,7 +444,7 @@ class Morph(ControlSurface):
 
 
 	def _setup_mixer(self):
-		self._mixer = MorphMixerComponent(tracks_provider = self._session_ring, track_assigner = SimpleTrackAssigner(), auto_name = True, invert_mute_feedback = False)
+		self._mixer = MorphMixerComponent(tracks_provider = self._session_ring, track_assigner = SimpleTrackAssigner(), auto_name = True, invert_mute_feedback = False, channel_strip_component_type = MorphChannelStripComponent)
 		self._mixer._selected_strip.main_layer = AddLayerMode(self._mixer._selected_strip, Layer(priority = 2, send_controls = self._send_pressure_matrix))
 		self._mixer._selected_strip.shift_layer = AddLayerMode(self._mixer._selected_strip, Layer(priority = 2, stop_button = self._button[5]))
 		#self._mixer._selected_strip.shift_layer = AddLayerMode(self._mixer, Layer(send_controls = self._shift_send_pressure_matrix.submatrix[:,]))
