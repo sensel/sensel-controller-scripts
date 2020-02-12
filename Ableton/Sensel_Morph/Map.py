@@ -29,7 +29,7 @@ class LividRGB:
 
 VERSION = '1.2'
 
-CHANNEL = 1
+CHANNEL = 0
 
 KEY_TRANSLATION_CHANNEL = 2
 
