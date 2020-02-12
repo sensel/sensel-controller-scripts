@@ -1,5 +1,5 @@
 # by amounra 0118 : http://www.aumhaa.com
-# written against Live 10.0.2
+# written against Live 10.1.7
 
 
 from ableton.v2.control_surface.elements.color import Color
@@ -27,17 +27,19 @@ class LividRGB:
 	BLUE = MonoColor(7)
 
 
-VERSION = '1.1'
+VERSION = '1.2'
 
-CHANNEL = 0
+CHANNEL = 1
 
-KEY_CHANNEL = 0
+KEY_TRANSLATION_CHANNEL = 2
+
+PIANO_TRANSLATION_CHANNEL = 0
+
+PAD_TRANSLATION_CHANNEL = 1
 
 DRUM_TRANSLATION_CHANNEL = 9
 
 USER_CHANNEL = 14
-
-PIANO_CHANNEL = 0
 
 MORPH_PADS = [[48, 49, 50, 51], [44, 45, 46, 47], [40, 41, 42, 43], [36, 37, 38, 39]]
 
