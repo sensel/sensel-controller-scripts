@@ -43,14 +43,14 @@ function init()
 	////////////////////////////////////////////////////////////////////////////////
 	application = host.createApplication();
 	cursorDevice = host.createCursorDevice();
-	cursorTrack = host.createCursorTrack(6, 1);
+	cursorTrack = host.createCursorTrack(8, 1);
 	masterTrack = host.createMasterTrack(8);
 	transport = host.createTransport();
-	trackBank = host.createMainTrackBank(15, 6, 4);
-	returnBank = host.createEffectTrackBank(6, 4);
+	trackBank = host.createMainTrackBank(15, 8, 4);
+	returnBank = host.createEffectTrackBank(8, 4);
 	////////////////////////////////////////////////////////////////////////////////
 
-	post('MorphPanner script loading ------------------------------------------------');
+	post('MorphPanner1 script loading ------------------------------------------------');
 
 	host.getMidiInPort(0).setMidiCallback(onMidi);
 	host.getMidiInPort(0).setSysexCallback(onSysex);
@@ -110,7 +110,7 @@ function setup_controls()
 
 function setup_mixer()
 {
-	mixer = new MixerComponent('Mixer', 15, 4, trackBank, returnBank, cursorTrack, masterTrack);
+	mixer = new MixerComponent('Mixer', 15, 8, trackBank, returnBank, cursorTrack, masterTrack);
 	var panners = [];
 	for(var i in mixer._channelstrips){
 		mixer._channelstrips[i]._panner = new Panner('Panner_'+i, mixer._channelstrips[i]);
@@ -311,10 +311,10 @@ function Panner(name, channelstrip){
 		var b = clip(127 - clip(127 * x) - clip (127 * -y));
 		var c = clip(127 - clip(127 * -x) - clip (127 * y));
 		var d = clip(127 - clip(127 * x) - clip (127 * y));
-		self._channelstrip._send[0]._Callback({_value:a});
-		self._channelstrip._send[1]._Callback({_value:b});
-		self._channelstrip._send[2]._Callback({_value:c});
-		self._channelstrip._send[3]._Callback({_value:d});
+		self._channelstrip._send[4]._Callback({_value:b});
+		self._channelstrip._send[5]._Callback({_value:a});
+		self._channelstrip._send[6]._Callback({_value:d});
+		self._channelstrip._send[7]._Callback({_value:c});
 		//post('vals:', a, b, c, d);
 	}
 

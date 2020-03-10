@@ -34,6 +34,7 @@ var PRODUCTION_OVERLAY = 	"F0 00 02 1D 00 04 00 00 01 01 F7";
 var DRUM_OVERLAY = 				"F0 00 02 1D 00 05 00 00 01 01 F7";
 var THUNDER_OVERLAY = 		"F0 00 02 1D 00 10 00 00 01 01 F7";
 var NO_OVERLAY = 					"F0 00 02 1D 00 0E 00 00 01 01 F7";
+var INNOVATOR_OVERLAY = 	"F0 00 02 1D 00 0F 00 00 01 01 F7";
 
 var override_noteInput = false;
 
@@ -541,6 +542,7 @@ function initialize_discrete_ports()
 	initialize_keys_port();
 	initialize_drum_port();
 	initialize_thunder_port();
+	initialize_innovator_port();
 }
 
 function initialize_production_port()
@@ -595,6 +597,19 @@ function initialize_thunder_port()
 	//}
 }
 
+function initialize_innovator_port()
+{
+	/*post('initialize_thunder_port', thunderDiscretePort._value);
+	if(thunderDiscretePort._value=='enabled')
+	{*/
+		post('creating Innovator Discrete Port...');
+		innovatorInput = host.getMidiInPort(0).createNoteInput("Innovator", "??????");
+		innovatorInput.setUseExpressiveMidi(true, 0, 24);
+		innovatorInput.setShouldConsumeEvents(false);
+		innovatorInput.setKeyTranslationTable(ALLOFFMAP);
+	//}
+}
+
 function initialize_settings()
 {
 	restartButton = new Setting('Script', 'signal', {category:'Global', action:'Restart'});
@@ -611,7 +626,9 @@ function initialize_settings()
 	thunderDiscretePort = new Setting('Thunder', 'enum', {category:'Exclusive Ports', options:['on', 'off'], initialValue:'off'});
 	//thunderDiscretePort.set_callback(initialize_thunder_port);
 	thunderDiscretePort.set_callback(update_main_modes);
-
+	innovatorDiscretePort = new Setting('Innovator', 'enum', {category:'Exclusive Ports', options:['on', 'off'], initialValue:'off'});
+	//thunderDiscretePort.set_callback(initialize_thunder_port);
+	innovatorDiscretePort.set_callback(update_main_modes);
 	/*productionDiscretePort = new Setting('productionDiscretePort', 'boolean', {category:'exclusivePorts', initialValue:'false'});
 	keysDiscretePort = new Setting('keysDiscretePort', 'boolean', {category:'exclusivePorts', initialValue:'false'});
 	drumDiscretePort = new Setting('drumDiscretePort', 'boolean', {category:'exclusivePorts', initialValue:'false'});
@@ -876,6 +893,27 @@ function setup_discrete_modes()
 	{
 		override_noteInput = false;
 		thunderInput.setKeyTranslationTable(ALLOFFMAP);
+		noteInput.setKeyTranslationTable(Note_Translation_Table);
+		post('thunderDiscreetPage exited');
+	}
+
+	innovatorDiscreetPage = new Page('innovatorDiscreetPage');
+	innovatorDiscreetPage.enter_mode = function()
+	{
+		if(innovatorDiscreetPage._value=='on')
+		{
+			override_noteInput = true;
+			innovatorInput.setKeyTranslationTable(Note_Translation_Table);
+			noteInput.setKeyTranslationTable(ALLOFFMAP);
+		}
+		post('thunderDiscreetPage entered');
+
+
+	}
+	innovatorDiscreetPage.exit_mode = function()
+	{
+		override_noteInput = false;
+		innovatorInput.setKeyTranslationTable(ALLOFFMAP);
 		noteInput.setKeyTranslationTable(Note_Translation_Table);
 		post('thunderDiscreetPage exited');
 	}
@@ -1249,6 +1287,7 @@ function setup_modes()
 	MainModes.add_mode(2, keysPage);
 	MainModes.add_mode(3, drumPage);
 	MainModes.add_mode(4, thunderPage);
+	MainModes.add_mode(5, offPage);
 
 }
 
@@ -1319,6 +1358,11 @@ function onSysex(data)
 		post('detected Thunder overlay...');
 		MainModes.change_mode(4);
 	}
+	else if(data=="f000021d000f00000101f7")
+	{
+		post('detected Innovator overlay...');
+		MainModes.change_mode(0);
+	}
 }
 
 function display_mode(){}
@@ -1373,6 +1417,10 @@ function morphFlush()
 				case 4:
 					thunderInput.setKeyTranslationTable(Note_Translation_Table);
 					thunderInput.setVelocityTranslationTable(Velocity_Translation_Table);
+					break;
+				case 5:
+					innovatorInput.setKeyTranslationTable(Note_Translation_Table);
+					innovatorInput.setVelocityTranslationTable(Velocity_Translation_Table);
 					break;
 			}
 			recalculate_translation_map = false;
