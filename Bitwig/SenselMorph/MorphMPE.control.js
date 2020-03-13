@@ -24,7 +24,7 @@ var script = this;
 var session;
 
 var DEBUG = false;	//post() doesn't work without this
-var VERSION = "1.1";
+var VERSION = "1.1.1";
 var VERBOSE = false;
 
 var CHECK_MAPS =          "F000021D007003014500200000000000000000F7";
@@ -627,7 +627,7 @@ function initialize_settings()
 	//thunderDiscretePort.set_callback(initialize_thunder_port);
 	thunderDiscretePort.set_callback(update_main_modes);
 	innovatorDiscretePort = new Setting('Innovator', 'enum', {category:'Exclusive Ports', options:['on', 'off'], initialValue:'off'});
-	//thunderDiscretePort.set_callback(initialize_thunder_port);
+	//innovatorDiscretePort.set_callback(initialize_innovator_port);
 	innovatorDiscretePort.set_callback(update_main_modes);
 	/*productionDiscretePort = new Setting('productionDiscretePort', 'boolean', {category:'exclusivePorts', initialValue:'false'});
 	keysDiscretePort = new Setting('keysDiscretePort', 'boolean', {category:'exclusivePorts', initialValue:'false'});
@@ -900,13 +900,13 @@ function setup_discrete_modes()
 	innovatorDiscreetPage = new Page('innovatorDiscreetPage');
 	innovatorDiscreetPage.enter_mode = function()
 	{
-		if(innovatorDiscreetPage._value=='on')
+		if(innovatorDiscretePort._value=='on')
 		{
 			override_noteInput = true;
 			innovatorInput.setKeyTranslationTable(Note_Translation_Table);
 			noteInput.setKeyTranslationTable(ALLOFFMAP);
 		}
-		post('thunderDiscreetPage entered');
+		post('innovatorDiscreetPage entered');
 
 
 	}
@@ -915,7 +915,7 @@ function setup_discrete_modes()
 		override_noteInput = false;
 		innovatorInput.setKeyTranslationTable(ALLOFFMAP);
 		noteInput.setKeyTranslationTable(Note_Translation_Table);
-		post('thunderDiscreetPage exited');
+		post('innovatorDiscreetPage exited');
 	}
 
 }
@@ -1232,8 +1232,6 @@ function setup_modes()
 		thunderPage.set_shift_button(button[7]);
 		thunderDiscreetPage.enter_mode();
 		thunderPage.active = true;
-
-
 	}
 	thunderPage.exit_mode = function()
 	{
@@ -1279,7 +1277,40 @@ function setup_modes()
 			thunderPage.enter_mode();
 		}
 	}
-	script["MainModes"] = new PageStack(5, "Main Modes");
+
+
+	innovatorPage = new Page('InnovatorPage');
+	innovatorPage.enter_mode = function()
+	{
+		post('innovatorPage entered');
+		for(var i=0; i<NOTE_OBJECTS.length;i++)
+		{
+			if(NOTE_OBJECTS[i].set_translation)
+			{
+				NOTE_OBJECTS[i].set_translation(i);
+			}
+		}
+		innovatorDiscreetPage.enter_mode();
+		innovatorPage.active = true;
+	}
+	innovatorPage.exit_mode = function()
+	{
+		innovatorDiscreetPage.exit_mode();
+		for(var i=0; i<NOTE_OBJECTS.length;i++)
+		{
+			if(NOTE_OBJECTS[i].set_translation)
+			{
+				NOTE_OBJECTS[i].set_translation(-1);
+			}
+		}
+		innovatorPage.active = false;
+		post('innovatorPage exited');
+	}
+
+
+
+
+	script["MainModes"] = new PageStack(6, "Main Modes");
 
 
 	MainModes.add_mode(0, offPage);
@@ -1287,7 +1318,7 @@ function setup_modes()
 	MainModes.add_mode(2, keysPage);
 	MainModes.add_mode(3, drumPage);
 	MainModes.add_mode(4, thunderPage);
-	MainModes.add_mode(5, offPage);
+	MainModes.add_mode(5, innovatorPage);
 
 }
 
@@ -1361,7 +1392,7 @@ function onSysex(data)
 	else if(data=="f000021d000f00000101f7")
 	{
 		post('detected Innovator overlay...');
-		MainModes.change_mode(0);
+		MainModes.change_mode(5);
 	}
 }
 
