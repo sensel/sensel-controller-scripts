@@ -3,7 +3,7 @@
 
 //loadAPI(1);
 //loadAPI(4);
-loadAPI(5);
+loadAPI(10);
 host.setShouldFailOnDeprecatedUse(false);
 
 host.defineController("Sensel", "MorphPanner", "1.0", "a3c14cbc-269e-451f-bc84-65644a28a467");
@@ -29,7 +29,7 @@ var script = this;
 var session;
 
 var DEBUG = true;	//post() doesn't work without this
-var VERSION = '1 .0';
+var VERSION = '1.0';
 var VERBOSE = false;
 
 
@@ -50,13 +50,14 @@ function init()
 	returnBank = host.createEffectTrackBank(8, 4);
 	////////////////////////////////////////////////////////////////////////////////
 
-	post('MorphPanner1 script loading ------------------------------------------------');
+	post('MorphPanner ' + VERSION + ' script loading ------------------------------------------------');
 
 	host.getMidiInPort(0).setMidiCallback(onMidi);
 	host.getMidiInPort(0).setSysexCallback(onSysex);
 	initialize_noteInput();
 	initialize_prototypes();
 	initialize_surface();
+	initialize_settings();
 	setup_controls();
 	setup_mixer();
 	resetAll();
@@ -67,8 +68,10 @@ function init()
 	setup_listeners();
 	setupTests();
 	MainModes.change_mode(0, true);
+	detect_send_offsets();
 	post('MorphPanner script loaded! ------------------------------------------------');
 	notifier.show_message('MorphPanner Script version ' + VERSION +' loaded.');
+	tasks.addTask(detect_send_offsets, undefined, 1, false, 'detect_send_offsets');
 }
 
 function initialize_noteInput()
@@ -78,6 +81,13 @@ function initialize_noteInput()
 
 }
 
+function initialize_settings()
+{
+	restartButton = new Setting('Script', 'signal', {category:'Global', action:'Restart'});
+	restartButton.set_callback(function(){host.restart();});
+	detectOffsets = new Setting('Offsets', 'signal', {category:'Global', action:'Detect Send Offsets'});
+	detectOffsets.set_callback(detect_send_offsets);
+}
 
 function initialize_surface()
 {
@@ -144,13 +154,25 @@ function setup_modes()
 	{
 		post('mainPage entered');
 		mainPage.active = true;
+		var index = 0;
 		for(var i=0;i<15;i++){
-			mixer.channelstrip(i)._panner._quadX.set_control(xslider[i]);
-			mixer.channelstrip(i)._panner._quadY.set_control(yslider[i]);
+			//var trackType = mixer.channelstrip(i)._trackType._value;
+			var isGroup = mixer.channelstrip(i)._track.isGroup().get();
+			var trackType = mixer.channelstrip(i)._track.trackType().get();
+			post(i, 'isGroup', isGroup, 'trackType:', trackType);
+			if(!isGroup){
+				mixer.channelstrip(i)._panner._quadX.set_control(xslider[index]);
+				mixer.channelstrip(i)._panner._quadY.set_control(yslider[index]);
+				index += 1;
+			}
 		}
 	}
 	mainPage.exit_mode = function()
 	{
+		for(var i=0;i<15;i++){
+			mixer.channelstrip(i)._panner._quadX.set_control(xslider[i]);
+			mixer.channelstrip(i)._panner._quadY.set_control(yslider[i]);
+		}
 		post('mainPage exited');
 	}
 	mainPage.update_mode = function()
@@ -301,6 +323,7 @@ function Panner(name, channelstrip){
 	var self = this;
 	this._name = name;
 	this._channelstrip = channelstrip;
+	this._offset = 0;
 	this._quadX = new RangedParameter(this._name + '_QuadX', {range:128});
 	this._quadY = new RangedParameter(this._name + '_QuadY', {range:128});
 
@@ -311,11 +334,30 @@ function Panner(name, channelstrip){
 		var b = clip(127 - clip(127 * x) - clip (127 * -y));
 		var c = clip(127 - clip(127 * -x) - clip (127 * y));
 		var d = clip(127 - clip(127 * x) - clip (127 * y));
-		self._channelstrip._send[4]._Callback({_value:b});
-		self._channelstrip._send[5]._Callback({_value:a});
-		self._channelstrip._send[6]._Callback({_value:d});
-		self._channelstrip._send[7]._Callback({_value:c});
+
+		self._channelstrip._send[0+self._offset]._Callback({_value:b});
+		self._channelstrip._send[1+self._offset]._Callback({_value:a});
+		self._channelstrip._send[2+self._offset]._Callback({_value:d});
+		self._channelstrip._send[3+self._offset]._Callback({_value:c});
 		//post('vals:', a, b, c, d);
+	}
+
+	this.detect_send_offset = function()
+	{
+		self._offset = 0;
+		var cs = self._channelstrip;
+		var num_sends = cs._num_sends - 1;
+		for(var i = num_sends;i > 0; i--)
+		{
+			var exists = cs._send_exists[i]._value;
+			//post(i, "exists", exists);
+			if(exists)
+			{
+				self._offset = Math.max(0, i-3);
+				// post("new offset:", self._offset);
+				break;
+			}
+		}
 	}
 
 	this._quadX.add_listener(this._update_quad_sends);
@@ -325,3 +367,50 @@ function Panner(name, channelstrip){
 function clip(i){
 	return Math.max(0, Math.min(127, i));
 }
+
+function detect_send_offsets()
+{
+	post('detect_send_offsets()')
+	for(var i in mixer._channelstrips)
+	{
+		mixer._channelstrips[i]._panner.detect_send_offset();
+	}
+	// mainPage.exit_mode();
+	// mainPage.enter_mode();
+	MainModes.change_mode(0, true);
+}
+
+function AdaptiveSendParameter(name, args)
+{
+	Parameter.call( this, name, args );
+	var self = this;
+
+	this._range = this._range||128;
+	this._Callback = function(obj)
+	{
+		if(obj._value!=undefined)
+		{
+			if(self._javaObj)
+			{
+				//post('Callback', self._name, obj._value);
+				self._javaObj.set(obj._value, self._range);
+			}
+			else
+			{
+				self.receive(Math.floor((obj._value/127)*self._range));
+			}
+		}
+	}
+	if(this._javaObj)
+	{
+		this._javaObj.addValueObserver(this._range, this.receive);
+	}
+	else
+	{
+		this.update_control = function(){if(self._control){self._control.send(Math.floor((self._value/self._range)*127));}}
+	}
+}
+
+AdaptiveSendParameter.prototype = new Parameter();
+
+AdaptiveSendParameter.prototype.constructor = AdaptiveSendParameter;
