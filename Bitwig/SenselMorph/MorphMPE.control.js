@@ -3,7 +3,7 @@
 loadAPI(7);
 host.setShouldFailOnDeprecatedUse(false);
 
-host.defineController("Sensel", "MorphMPE", "1.1", "aa49a7eb-d170-4b07-8a75-257278da7ca8");
+host.defineController("Sensel", "MorphMPE", "1.1.2", "aa49a7eb-d170-4b07-8a75-257278da7ca8");
 host.defineMidiPorts(1, 1);
 
 if (host.platformIsWindows())
@@ -24,7 +24,7 @@ var script = this;
 var session;
 
 var DEBUG = false;	//post() doesn't work without this
-var VERSION = "1.1.1";
+var VERSION = "1.1.2";
 var VERBOSE = false;
 
 var CHECK_MAPS =          "F000021D007003014500200000000000000000F7";
@@ -614,25 +614,19 @@ function initialize_settings()
 {
 	restartButton = new Setting('Script', 'signal', {category:'Global', action:'Restart'});
 	restartButton.set_callback(function(){host.restart();});
+	enableNotifications = new Setting('Notifications', 'enum', {category:'Global', options:['on', 'off'], initialValue:'on'});
+	enableNotifications.set_callback(update_notification_enabled);
+
 	productionDiscretePort = new Setting('Production', 'enum', {category:'Exclusive Ports', options:['on', 'off'], initialValue:'off'});
-	//productionDiscretePort.set_callback(initialize_production_port);
 	productionDiscretePort.set_callback(update_main_modes);
 	keysDiscretePort = new Setting('Keys', 'enum', {category:'Exclusive Ports', options:['on', 'off'], initialValue:'off'});
-	//keysDiscretePort.set_callback(initialize_keys_port);
 	keysDiscretePort.set_callback(update_main_modes);
 	drumDiscretePort = new Setting('Drum', 'enum', {category:'Exclusive Ports', options:['on', 'off'], initialValue:'off'});
-	//drumDiscretePort.set_callback(initialize_drum_port);
 	drumDiscretePort.set_callback(update_main_modes);
 	thunderDiscretePort = new Setting('Thunder', 'enum', {category:'Exclusive Ports', options:['on', 'off'], initialValue:'off'});
-	//thunderDiscretePort.set_callback(initialize_thunder_port);
 	thunderDiscretePort.set_callback(update_main_modes);
 	innovatorDiscretePort = new Setting('Innovator', 'enum', {category:'Exclusive Ports', options:['on', 'off'], initialValue:'off'});
-	//innovatorDiscretePort.set_callback(initialize_innovator_port);
 	innovatorDiscretePort.set_callback(update_main_modes);
-	/*productionDiscretePort = new Setting('productionDiscretePort', 'boolean', {category:'exclusivePorts', initialValue:'false'});
-	keysDiscretePort = new Setting('keysDiscretePort', 'boolean', {category:'exclusivePorts', initialValue:'false'});
-	drumDiscretePort = new Setting('drumDiscretePort', 'boolean', {category:'exclusivePorts', initialValue:'false'});
-	thunderDiscretePort = new Setting('thunderDiscretePort', 'boolean', {category:'exclusivePorts', initialValue:'false'});*/
 }
 
 function initialize_surface()
@@ -802,6 +796,11 @@ function setup_notifications()
 	notifier.add_subject(scales._noteOffset, 'ScaleOffset', undefined, 6, 'Main');
 	notifier.add_subject(pianoscales._noteOffset, 'PianoOffset', undefined, 6, 'Piano');
 	notifier.add_subject(MainModes, 'Mode', ['Main', 'Shift'], 2);
+}
+
+function update_notification_enabled()
+{
+	notifier.set_enabled(enableNotifications._value=='on')
 }
 
 function setup_tasks()

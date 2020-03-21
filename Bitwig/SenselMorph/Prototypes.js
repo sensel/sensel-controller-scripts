@@ -2178,6 +2178,8 @@ function ChannelStripComponent(name, num, track, num_sends, _colors)
 
 	this._isGroup = new Parameter(this._name + '_Is_Group', {javaObj:self._track, monitor:'addIsGroupObserver'});
 
+	this._trackType = new Parameter(this._name + '_Track_Type', {javaObj:self._track.trackType(), monitor:'addValueObserver'});
+
 	this._volume = new RangedParameter(this._name + '_Volume', {javaObj:this._track.getVolume(), range:128});
 
 	this._pan = new RangedParameter(this._name + '_Pan', {javaObj:this._track.getPan(), range:128});
@@ -2216,7 +2218,7 @@ function ChannelStripComponent(name, num, track, num_sends, _colors)
 			//if(tasks){tasks.addTask(self._delayed_select, [], 1, false, 'select_track');}
 			if(self._isGroup._value)
 			{
-				post(self._name, 'is group....');
+				//post(self._name, 'is group....');
 				self._track.select();
 			}
 			else
@@ -2252,9 +2254,11 @@ function ChannelStripComponent(name, num, track, num_sends, _colors)
 	this._track_name._javaObj.addNameObserver(10, 'None', this._track_name.receive);
 
 	this._send = [];
+	this._send_exists = [];
 	for(var i=0;i<num_sends;i++)
 	{
 		this._send[i] = new RangedParameter(this._name + '_Send_' + i, {num:i, javaObj:this._track.getSend(i), range:128});
+		this._send_exists[i] = new Parameter(this._name + '_Send_Exists', {num:i, javaObj:this._track.getSend(i).exists(), monitor:'addValueObserver'});
 	}
 
 	this.updateControls = function()
@@ -4311,6 +4315,7 @@ TaskServer.prototype.removeTask = function(callback, arguments, name)
 function NotificationDisplayComponent()
 {
 	self = this;
+	this._enabled = true;
 	this._subjects = {};
 	this._groups = [];
 	this._scheduled_messages = [];
@@ -4336,42 +4341,49 @@ function NotificationDisplayComponent()
 	}
 	this._display_messages = function()
 	{
-		var entry_name = undefined;
-		var priority = self._last_priority;
-		for(var item in self._scheduled_messages)
+		//post('enabled:', self._enabled)
+		if(self._enabled)
 		{
-			var entry = self._subjects[self._scheduled_messages[item]];
-			//post('entry is', self._scheduled_messages[item], entry.display_name, entry.priority);
-			if(entry.priority>=priority)
+			var entry_name = undefined;
+			var priority = self._last_priority;
+			for(var item in self._scheduled_messages)
 			{
-				entry_name = self._scheduled_messages[item];
-				priority = entry.priority;
-			}
-		}
-		//post('display_message', entry_name);
-		var message = [];
-		if(entry_name in self._subjects)
-		{
-			var entry = self._subjects[entry_name];
-			if(entry.group != undefined)
-			{
-				for(var i in self._groups[entry.group])
+				var entry = self._subjects[self._scheduled_messages[item]];
+				//post('entry is', self._scheduled_messages[item], entry.display_name, entry.priority);
+				if(entry.priority>=priority)
 				{
-					var member = self._subjects[self._groups[entry.group][i]];
-					message.push(member.display_name + ' : ' + member.parameter());
+					entry_name = self._scheduled_messages[item];
+					priority = entry.priority;
 				}
 			}
-			else
+			//post('display_message', entry_name);
+			var message = [];
+			if(entry_name in self._subjects)
 			{
-				message.push(entry.display_name + ' : ' + entry.parameter());
+				var entry = self._subjects[entry_name];
+				if(entry.group != undefined)
+				{
+					for(var i in self._groups[entry.group])
+					{
+						var member = self._subjects[self._groups[entry.group][i]];
+						message.push(member.display_name + ' : ' + member.parameter());
+					}
+				}
+				else
+				{
+					message.push(entry.display_name + ' : ' + entry.parameter());
+				}
 			}
+			host.showPopupNotification(message.join('   '));
+			self._scheduled_messages = [];
 		}
-		host.showPopupNotification(message.join('   '));
-		self._scheduled_messages = [];
 	}
 	this.show_message = function(message)
 	{
-		host.showPopupNotification(message);
+		if(self._enabled)
+		{
+			host.showPopupNotification(message);
+		}
 	}
 }
 
@@ -4449,4 +4461,9 @@ NotificationDisplayComponent.prototype.make_parameter_function = function(obj, p
 NotificationDisplayComponent.prototype.set_priority = function(priority)
 {
 	this._last_priority = priority;
+}
+
+NotificationDisplayComponent.prototype.set_enabled = function(enabled)
+{
+	this._enabled = enabled;
 }
