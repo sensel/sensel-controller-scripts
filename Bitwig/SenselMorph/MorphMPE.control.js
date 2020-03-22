@@ -3,7 +3,7 @@
 loadAPI(7);
 host.setShouldFailOnDeprecatedUse(false);
 
-host.defineController("Sensel", "MorphMPE", "1.1.2", "aa49a7eb-d170-4b07-8a75-257278da7ca8");
+host.defineController("Sensel", "MorphMPE", "1.1.3", "aa49a7eb-d170-4b07-8a75-257278da7ca8");
 host.defineMidiPorts(1, 1);
 
 if (host.platformIsWindows())
@@ -24,7 +24,7 @@ var script = this;
 var session;
 
 var DEBUG = false;	//post() doesn't work without this
-var VERSION = "1.1.2";
+var VERSION = "1.1.3";
 var VERBOSE = false;
 
 var CHECK_MAPS =          "F000021D007003014500200000000000000000F7";
@@ -511,7 +511,7 @@ function init()
 	setup_empty_note_scales();
 	setup_transport();
 	setup_tasks();
-	//setup_usermodes();
+	setup_usermodes();
 	setup_discrete_modes();
 	setup_modes();
 	setup_notifications();
@@ -616,6 +616,11 @@ function initialize_settings()
 	restartButton.set_callback(function(){host.restart();});
 	enableNotifications = new Setting('Notifications', 'enum', {category:'Global', options:['on', 'off'], initialValue:'on'});
 	enableNotifications.set_callback(update_notification_enabled);
+
+	enableUserModeMP = new Setting('Production', 'enum', {category:'CC User Mode', options:['on', 'off'], initialValue:'off'});
+	enableUserModeMP.set_callback(update_main_modes);
+	enableUserModeThunder = new Setting('Thunder', 'enum', {category:'CC User Mode', options:['on', 'off'], initialValue:'off'});
+	enableUserModeThunder.set_callback(update_main_modes);
 
 	productionDiscretePort = new Setting('Production', 'enum', {category:'Exclusive Ports', options:['on', 'off'], initialValue:'off'});
 	productionDiscretePort.set_callback(update_main_modes);
@@ -921,36 +926,10 @@ function setup_discrete_modes()
 
 function setup_usermodes()
 {
-	userInput = host.getMidiInPort(0).createNoteInput("MorphUser", "80????", "90????", "D0????", "E0????");
-	script['userbank'] = new UserBankComponent('UserBank', 127, userInput);
+	userInput = host.getMidiInPort(0).createNoteInput("ProductionUser", "80????", "90????", "D0????", "E0????");
+	script['userbank'] = new UserBankComponent('UserBank', 10, userInput);
 	userInput.setUseExpressiveMidi(true, 0, 24);
 	userInput.setShouldConsumeEvents(false);
-	thunderInput = host.getMidiInPort(0).createNoteInput("MorphThunder", "??????");
-	script['thunderbank'] = new UserBankComponent('ThunderBank', 127, thunderInput);
-	thunderInput.setUseExpressiveMidi(true, 0, 24);
-	thunderInput.setShouldConsumeEvents(false);
-
-
-	thunderUserPage = new Page('ThunderUserPage');
-	thunderUserPage.enter_mode = function()
-	{
-		post('thunderUserPage entered');
-		for(var i=0;i<thunderbuttons.length;i++)
-		{
-			thunderbank.set_control(i, thunderbuttons[i]);
-		}
-		thunderbank.set_enabled(true);
-	}
-	thunderUserPage.exit_mode = function()
-	{
-		post('thunderUserPage exited');
-		thunderbank.set_enabled(false);
-		for(var i=0;i<127;i++)
-		{
-			thunderbank.set_control(i);
-		}
-		thunderbank.set_enabled(false);
-	}
 
 	userPage = new Page('UserPage');
 	userPage.enter_mode = function()
@@ -960,13 +939,9 @@ function setup_usermodes()
 		{
 			userbank.set_control(i, dial[i]);
 		}
-		for(var i=0;i<9;i++)
-		{
-			userbank.set_control(i+8, pianokey[i+2]);
-		}
 		for(var i=0;i<2;i++)
 		{
-			userbank.set_control(i+17, slider[i]);
+			userbank.set_control(i+8, slider[i]);
 		}
 		userbank.set_enabled(true);
 	}
@@ -974,12 +949,41 @@ function setup_usermodes()
 	{
 		post('userPage exited');
 		userbank.set_enabled(false);
-		for(var i=0;i<19;i++)
+		for(var i=0;i<10;i++)
 		{
 			userbank.set_control(i);
 		}
 		userbank.set_enabled(false);
 	}
+
+	thunderInput = host.getMidiInPort(0).createNoteInput("ThunderUser", "??????");
+	script['thunderbank'] = new UserBankComponent('ThunderBank', 8, thunderInput);
+	thunderInput.setUseExpressiveMidi(true, 0, 24);
+	thunderInput.setShouldConsumeEvents(false);
+
+
+	thunderUserPage = new Page('ThunderUserPage');
+	thunderUserPage.enter_mode = function()
+	{
+		post('thunderUserPage entered');
+		for(var i=0;i<8;i++)
+		{
+			thunderbank.set_control(i, thunderdial[i]);
+		}
+		thunderbank.set_enabled(true);
+	}
+	thunderUserPage.exit_mode = function()
+	{
+		post('thunderUserPage exited');
+		thunderbank.set_enabled(false);
+		for(var i=0;i<8;i++)
+		{
+			thunderbank.set_control(i);
+		}
+		thunderbank.set_enabled(false);
+	}
+
+
 
 
 }
@@ -1016,7 +1020,12 @@ function setup_modes()
 		mixer.set_nav_controls(button[0], button[1]);
 		mixer.selectedstrip()._send[0].set_control(pressure[0]);
 		mixer.selectedstrip()._send[1].set_control(pressure[1]);
-		device.set_parameter_controls(dial);
+		if(enableUserModeMP._value == 'off'){
+			device.set_parameter_controls(dial);
+		}
+		else{
+			userPage.enter_mode();
+		}
 		transport._stop.set_control(button[5]);
 		transport._play.set_control(button[4]);
 		transport._overdub.set_control(button[6]);
@@ -1031,6 +1040,7 @@ function setup_modes()
 	}
 	mainPage.exit_mode = function()
 	{
+		userPage.exit_mode();
 		productionDiscreetPage.exit_mode();
 		drumrack.assign_grid();
 		scales.assign_grid();
@@ -1218,8 +1228,12 @@ function setup_modes()
 		transport._play.set_control(button[4]);
 		transport._stop.set_control(button[5]);
 		transport._overdub.set_control(button[6]);
-		device.set_parameter_controls(thunderdial);
-		//thunderUserPage.enter_mode();
+		if(enableUserModeThunder._value == 'off'){
+			device.set_parameter_controls(thunderdial);
+		}
+		else{
+			thunderUserPage.enter_mode();
+		}
 		for(var i=0; i<NOTE_OBJECTS.length;i++)
 		{
 			if(NOTE_OBJECTS[i].set_translation)
@@ -1235,6 +1249,7 @@ function setup_modes()
 	thunderPage.exit_mode = function()
 	{
 		thunderDiscreetPage.exit_mode();
+		thunderUserPage.exit_mode();
 		device.set_parameter_controls();
 		mixer.set_nav_controls();
 		mixer.selectedstrip()._send[0].set_control();
