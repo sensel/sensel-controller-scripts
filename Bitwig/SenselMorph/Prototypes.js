@@ -4170,14 +4170,16 @@ function UserBankComponent(name, size, port)
 	}
 	this.set_enabled = function(val)
 	{
-		this._enabled = val;
-		if(this._enabled)
-		{
-			self._port.setKeyTranslationTable(self._noteTable);
-		}
-		else
-		{
-			self._port.setKeyTranslationTable(self._disabledTable);
+		if(this._port){
+			this._enabled = val;
+			if(this._enabled)
+			{
+				self._port.setKeyTranslationTable(self._noteTable);
+			}
+			else
+			{
+				self._port.setKeyTranslationTable(self._disabledTable);
+			}
 		}
 	}
 

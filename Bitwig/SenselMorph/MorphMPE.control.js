@@ -926,10 +926,10 @@ function setup_discrete_modes()
 
 function setup_usermodes()
 {
-	userInput = host.getMidiInPort(0).createNoteInput("ProductionUser", "80????", "90????", "D0????", "E0????");
-	script['userbank'] = new UserBankComponent('UserBank', 10, userInput);
-	userInput.setUseExpressiveMidi(true, 0, 24);
-	userInput.setShouldConsumeEvents(false);
+	// userInput = host.getMidiInPort(0).createNoteInput("ProductionUser", "80????", "90????", "D0????", "E0????");
+	script['userbank'] = new UserBankComponent('UserBank', 18);
+	// userInput.setUseExpressiveMidi(true, 0, 24);
+	// userInput.setShouldConsumeEvents(false);
 
 	userPage = new Page('UserPage');
 	userPage.enter_mode = function()
@@ -948,7 +948,7 @@ function setup_usermodes()
 	userPage.exit_mode = function()
 	{
 		post('userPage exited');
-		userbank.set_enabled(false);
+		// userbank.set_enabled(false);
 		for(var i=0;i<10;i++)
 		{
 			userbank.set_control(i);
@@ -956,10 +956,10 @@ function setup_usermodes()
 		userbank.set_enabled(false);
 	}
 
-	thunderInput = host.getMidiInPort(0).createNoteInput("ThunderUser", "??????");
-	script['thunderbank'] = new UserBankComponent('ThunderBank', 8, thunderInput);
-	thunderInput.setUseExpressiveMidi(true, 0, 24);
-	thunderInput.setShouldConsumeEvents(false);
+	// thunderInput = host.getMidiInPort(0).createNoteInput("ThunderUser", "??????");
+	// script['thunderbank'] = new UserBankComponent('ThunderBank', 8, thunderInput);
+	// thunderInput.setUseExpressiveMidi(true, 0, 24);
+	// thunderInput.setShouldConsumeEvents(false);
 
 
 	thunderUserPage = new Page('ThunderUserPage');
@@ -968,19 +968,19 @@ function setup_usermodes()
 		post('thunderUserPage entered');
 		for(var i=0;i<8;i++)
 		{
-			thunderbank.set_control(i, thunderdial[i]);
+			userbank.set_control(i+10, thunderdial[i]);
 		}
-		thunderbank.set_enabled(true);
+		userbank.set_enabled(true);
 	}
 	thunderUserPage.exit_mode = function()
 	{
 		post('thunderUserPage exited');
-		thunderbank.set_enabled(false);
+		// thunderbank.set_enabled(false);
 		for(var i=0;i<8;i++)
 		{
-			thunderbank.set_control(i);
+			userbank.set_control(i+10);
 		}
-		thunderbank.set_enabled(false);
+		userbank.set_enabled(false);
 	}
 
 
