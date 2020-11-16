@@ -11,6 +11,13 @@ A complete script for Ableton Live. Learn more in our [guide](http://guide.sense
 * Project - A sample project with some great sound content to get to know the workflow.
 * Sensel_Morph - The python files installed into Live to make the control surface script work.
 
+### Install
+In Live 10.1.13 and above
+* Manually create a folder called “Remote Scripts” within your User Library. Default path is:
+  * Windows: \Users\[username]\Documents\Ableton\User Library
+  * Mac: Macintosh HD/Users/[username]/Music/Ableton/User Library
+* Place the `Sensel_Morph` remote script folder from this repo's `Abelton` directory into the "Remote Scripts" folder you just created.
+
 ## Bitwig
 A complete script for Bitwig Studio. Learn more in our [guide](http://guide.sensel.com/morph_software/#bitwig-studio-control-surface)
 
