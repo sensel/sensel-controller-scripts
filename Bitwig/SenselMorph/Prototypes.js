@@ -1739,6 +1739,7 @@ function SessionComponent(name, width, height, trackBank, _colors, mastertrack)
 	this._trackBank = trackBank;
 	this._sceneBank = trackBank.sceneBank();
 	this._indication_depends_on_grid_assignment = true;
+	this._update_selected_clipslot_on_selected_track_change = true;
 
 	this._tracks = [];
 	this.width = function(){return width}
@@ -1839,7 +1840,10 @@ function SessionComponent(name, width, height, trackBank, _colors, mastertrack)
 		post('update selected slot');
 		var slot = self._selectedTrack._selected_slot;
 		self._selectedSlot._value = slot;
-		if(tasks){tasks.addTask(self._delayed_update_selected_slot, [slot], 1, false, 'select_slot');}
+		if(self._update_selected_clipslot_on_selected_track_change)
+		{
+			if(tasks){tasks.addTask(self._delayed_update_selected_slot, [slot], 1, false, 'select_slot');}
+		}
 		//if(tasks){tasks.addTask(self._selectedSlot._javaObj.showInEditor, [slot], 1, false, 'display_slot');}
 		//self._selectedSlot._javaObj.select(slot);
 		//self._selectedSlot._javaObj.showInEditor(slot);

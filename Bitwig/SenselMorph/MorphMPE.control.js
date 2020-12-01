@@ -632,6 +632,9 @@ function initialize_settings()
 	thunderDiscretePort.set_callback(update_main_modes);
 	innovatorDiscretePort = new Setting('Innovator', 'enum', {category:'Exclusive Ports', options:['on', 'off'], initialValue:'off'});
 	innovatorDiscretePort.set_callback(update_main_modes);
+
+	selectClipSlotOnTrackChange = new Setting('AutoClipSlotSelect', 'enum', {category:'Miscellaneous', options:['on', 'off'], initialValue:'on'});
+	selectClipSlotOnTrackChange.set_callback(update_selected_clipslot_on_selected_track_change);
 }
 
 function initialize_surface()
@@ -806,6 +809,11 @@ function setup_notifications()
 function update_notification_enabled()
 {
 	notifier.set_enabled(enableNotifications._value=='on')
+}
+
+function update_selected_clipslot_on_selected_track_change()
+{
+	session._update_selected_clipslot_on_selected_track_change = selectClipSlotOnTrackChange._value=='on';
 }
 
 function setup_tasks()
