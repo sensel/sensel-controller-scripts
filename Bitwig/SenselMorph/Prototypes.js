@@ -1739,7 +1739,8 @@ function SessionComponent(name, width, height, trackBank, _colors, mastertrack)
 	this._trackBank = trackBank;
 	this._sceneBank = trackBank.sceneBank();
 	this._indication_depends_on_grid_assignment = true;
-	this._update_selected_clipslot_on_selected_track_change = true;
+	// this.update_selected_clipslot_on_selected_track_change = new Parameter(this._name + '_update_selected_clipslot_on_selected_track_change', {value:1});
+	// this._update_selected_clipslot_on_selected_track_change.bind(this);
 
 	this._tracks = [];
 	this.width = function(){return width}
@@ -1837,19 +1838,19 @@ function SessionComponent(name, width, height, trackBank, _colors, mastertrack)
 
 	this._updateSelectedSlot = function()
 	{
-		post('update selected slot');
+		post('update selected slot1');
 		var slot = self._selectedTrack._selected_slot;
 		self._selectedSlot._value = slot;
-		if(self._update_selected_clipslot_on_selected_track_change)
+		if(tasks)
 		{
-			if(tasks){tasks.addTask(self._delayed_update_selected_slot, [slot], 1, false, 'select_slot');}
+			tasks.addTask(self._delayed_update_selected_slot, [slot], 1, false, 'select_slot');
 		}
 		//if(tasks){tasks.addTask(self._selectedSlot._javaObj.showInEditor, [slot], 1, false, 'display_slot');}
 		//self._selectedSlot._javaObj.select(slot);
 		//self._selectedSlot._javaObj.showInEditor(slot);
 	}
 	this._selected_track = new Parameter('selected_track_listener', {javaObj:this._cursorTrack, monitor:'addIsSelectedObserver'});
-	this._selected_track.add_listener(this._updateSelectedSlot);
+	// this._selected_track.add_listener(this._updateSelectedSlot);
 
 	this._selected_track_is_group = new Parameter('selected_track_is_group_listener', {javaObj:this._cursorTrack, monitor:'addIsGroupObserver'});
 	this.select_playing_clip = function()
@@ -1880,17 +1881,17 @@ function SessionComponent(name, width, height, trackBank, _colors, mastertrack)
 
 	this._delayed_update_selected_slot = function(slot)
 	{
-		if(!self._selected_track_is_group._value)
-		{
-			self._selectedSlot._javaObj.select(slot);
-			self._selectedSlot._javaObj.showInEditor(slot);
-		}
-		else
-		{
-			post('cant update slot because selected track is group, there is a bug in the BWAPI');
-			//self._selectedSlot._javaObj.select(slot);
-			//self._selectedSlot._javaObj.showInEditor(slot);
-		}
+			if(!self._selected_track_is_group._value)
+			{
+				self._selectedSlot._javaObj.select(slot);
+				self._selectedSlot._javaObj.showInEditor(slot);
+			}
+			else
+			{
+				post('cant update slot because selected track is group, there is a bug in the BWAPI');
+				//self._selectedSlot._javaObj.select(slot);
+				//self._selectedSlot._javaObj.showInEditor(slot);
+			}
 	}
 }
 

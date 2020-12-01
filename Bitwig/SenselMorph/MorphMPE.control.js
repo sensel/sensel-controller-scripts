@@ -813,7 +813,10 @@ function update_notification_enabled()
 
 function update_selected_clipslot_on_selected_track_change()
 {
-	session._update_selected_clipslot_on_selected_track_change = selectClipSlotOnTrackChange._value=='on';
+	session._selected_track.remove_listener(session._updateSelectedSlot);
+	if(selectClipSlotOnTrackChange._value=='on'){
+		session._selected_track.add_listener(session._updateSelectedSlot);
+	}
 }
 
 function setup_tasks()
