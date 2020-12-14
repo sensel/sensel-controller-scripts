@@ -1,6 +1,6 @@
 # Sensel Controller Scripts
 
-Scripts to be used in Music Software to extend functionality and provide auto mapping.
+Scripts to be used in Music Software to extend functionality and provide auto mapping. You can download the current files of this repository either by pulling this repo from a github client or just [downloading the zip.](https://github.com/sensel/sensel-controller-scripts/archive/master.zip)
 
 ## Ableton
 A complete script for Ableton Live. Learn more in our [guide](http://guide.sensel.com/morph_software/#ableton-live-control-surface)
