@@ -20,6 +20,12 @@ In Live 10.1.13 and above
 * Place the `Sensel_Morph` remote script folder from this repo's `Abelton` directory into the "Remote Scripts" folder you just created.
 * Use the [SenselApp](https://sensel.com/pages/support/#downloads) to flash the .senselmap files found in this repo's `Overlays` directory to the Morph.
 
+## Ableton Live 11 MPE
+A complete script for Live 11, with MPE support. This has very different maps from the Ableton Live 10 script. The scripts and maps are not interchangeable.
+This is a first beta release, and the mappings may change! The functions are extremely similar to the Bitwig scripts - you can refer to the guides in the Bitwig folder for now.
+
+Preset 8 can be used with the Sarah Belle Reid Sound Worlds preset Pack. Preset 9 can be used with sonicLAB Fundamental.
+
 ## Bitwig
 A complete script for Bitwig Studio. Learn more in our [guide](http://guide.sensel.com/morph_software/#bitwig-studio-control-surface)
 
