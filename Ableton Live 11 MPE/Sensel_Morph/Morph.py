@@ -465,6 +465,7 @@ class Morph(ControlSurface):
 		#self._main_modes.selected_mode = 'Main'
 		self._on_device_changed.subject = self._device_provider
 		self._on_selected_track_changed.subject = self.song.view
+		self._on_selected_track_changed()
 		self._send_midi(CHECK_MAPS)
 		self._send_midi(MAGNET_VALUES_CALL)
 
@@ -557,6 +558,7 @@ class Morph(ControlSurface):
 	def _setup_drum_group(self):
 		# self._drum_group = MorphDrumGroup(set_pad_translations = self.set_pad_translations, translation_channel = PAD_TRANSLATION_CHANNEL)
 		self._drum_group = MorphDrumGroup()
+		self._drum_group.position = 9
 		self._drum_group.main_layer = AddLayerMode(self._drum_group, Layer(priority = 2, matrix = self._pad_matrix))
 		self._drum_group.nav_layer = AddLayerMode(self._drum_group, Layer(priority = 2, scroll_up_button = self._key[1], scroll_down_button = self._key[0]))
 		self._drum_group.set_enabled(False)
@@ -731,6 +733,7 @@ class Morph(ControlSurface):
 	@listens('device')
 	def _on_device_changed(self):
 		debug('_on_device_changed:', self._device_provider.device)
+		self._on_selected_track_changed()
 		# self._drum_group.set_drum_group_device(self._device_provider.device)
 		# self._drum_group2.set_drum_group_device(self._device_provider.device)
 
