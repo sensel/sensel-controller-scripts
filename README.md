@@ -24,6 +24,8 @@ In Live 10.1.13 and above
 A complete script for Live 11, with MPE support. This has very different maps from the Ableton Live 10 script. The scripts and maps are not interchangeable.
 This is a first beta release, and the mappings may change! The functions are extremely similar to the Bitwig scripts - you can refer to the guides in the Bitwig folder for now.
 
+Refer to the "manual Install" for Live 10 above. If you are running both, you can rename teh "Sensel_Morph" folder to "Sensel_Morph11".
+
 Preset 8 can be used with the Sarah Belle Reid Sound Worlds preset Pack. Preset 9 can be used with sonicLAB Fundamental.
 
 ## Bitwig
