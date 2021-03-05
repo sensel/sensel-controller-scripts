@@ -23,7 +23,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={userdocs}\Ableton\User Library\Remote Scripts
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-OutputBaseFilename=SenselMorph_Live_Setup
+OutputBaseFilename=SenselMorph_Live_11_Setup
 Compression=lzma
 SolidCompression=yes
 CreateAppDir=no
@@ -38,6 +38,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Files]
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "..\..\..\Ableton\Sensel_Morph\*"; DestDir: "{userdocs}\Ableton\User Library\Remote Scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\..\Ableton\Project\*"; DestDir: "{userdocs}\Sensel Morph\Ableton\Project"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\..\Ableton\Overlays\*"; DestDir: "{userdocs}\Sensel Morph\Ableton\Overlay Maps"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\Ableton\Project\*"; DestDir: "{userdocs}\Sensel Morph\Ableton Live 11\Project"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\Ableton\Overlays\*"; DestDir: "{userdocs}\Sensel Morph\Ableton Live 11\Overlay Maps"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\Ableton\Guides\*"; DestDir: "{userdocs}\Sensel Morph\Ableton Live 11\Guides"; Flags: ignoreversion recursesubdirs createallsubdirs
 
