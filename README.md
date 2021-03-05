@@ -20,6 +20,8 @@ In Live 10.1.13 and above
 * Place the `Sensel_Morph` remote script folder from this repo's `Abelton` directory into the "Remote Scripts" folder you just created.
 * Use the [SenselApp](https://sensel.com/pages/support/#downloads) to flash the .senselmap files found in this repo's `Overlays` directory to the Morph.
 
+All the details about installing third-party scripts can be found on the [https://help.ableton.com/hc/en-us/articles/209072009-Installing-third-party-remote-scripts](Ableton site).
+
 ## Ableton Live 11 MPE
 A complete script for Live 11, with MPE support. This has very different maps from the Ableton Live 10 script. The scripts and maps are not interchangeable.
 This is a first beta release, and the mappings may change! The functions are extremely similar to the Bitwig scripts - you can refer to the guides in the Bitwig folder for now.
@@ -38,7 +40,7 @@ A complete script for Bitwig Studio. Learn more in our [guide](http://guide.sens
 
 ### Manual Install
 The Installer directory in the repo has Mac and Windows Installers. If you need to install manually:
-* Navigate to your user folder: 
+* Navigate to your user folder:
   * Windows: Documents\Bitwig Studio\Controller Scripts
   * Mac: Documents/Bitwig Studio/Controller Scripts/
   * Linux: Documents/Bitwig Studio/Controller Scripts/
