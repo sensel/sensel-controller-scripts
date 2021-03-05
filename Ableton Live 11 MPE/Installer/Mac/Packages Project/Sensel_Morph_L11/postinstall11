@@ -10,7 +10,7 @@ sudo mv /Users/Shared/Sensel_Morph /Users/Shared/Sensel_Morph_11
 cd $HOME/Music/
 mkdir -p "Ableton/User Library/Remote Scripts"
 sudo chown -R $USER "$HOME/Music/Ableton/User Library/Remote Scripts"
-cp -r "/Users/Shared/Sensel_Morph_11/" "$HOME/Music/Ableton/User Library/Remote Scripts"
+cp -r "/Users/Shared/Sensel_Morph_11/" "$HOME/Music/Ableton/User Library/Remote Scripts/Sensel_Morph_MPE"
 
 #put project and overlay maps into documents folder
 cd $HOME/Documents/
@@ -20,7 +20,7 @@ mkdir -p "Sensel Morph/Ableton Live 11 Overlay Maps"
 mkdir -p "Sensel Morph/Ableton Live 11 Overlay Guides"
 cp -r "/Users/Shared/Project/" "Sensel Morph/Ableton Live 11 Script Project"
 cp -r "/Users/Shared/Overlays/" "Sensel Morph/Ableton Live 11 Overlay Maps"
-cp -r "/Users/Shared/Overlays/" "Sensel Morph/Ableton Live 11 Overlay Guides"
+cp -r "/Users/Shared/Guides/" "Sensel Morph/Ableton Live 11 Overlay Guides"
 
 # set permissions for new folder
 sudo chown -R $USER "$HOME/Documents/Sensel Morph/"

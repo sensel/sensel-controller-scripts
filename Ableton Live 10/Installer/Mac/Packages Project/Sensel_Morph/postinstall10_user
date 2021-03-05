@@ -10,7 +10,7 @@ sudo mv /Users/Shared/Sensel_Morph /Users/Shared/Sensel_Morph_10
 cd $HOME/Music/
 mkdir -p "Ableton/User Library/Remote Scripts"
 sudo chown -R $USER "$HOME/Music/Ableton/User Library/Remote Scripts"
-cp -r "/Users/Shared/Sensel_Morph_10/" "$HOME/Music/Ableton/User Library/Remote Scripts"
+cp -r "/Users/Shared/Sensel_Morph_10/" "$HOME/Music/Ableton/User Library/Remote Scripts/Sensel_Morph_10"
 
 cd $HOME/Documents/
 mkdir -p "Sensel Morph"
