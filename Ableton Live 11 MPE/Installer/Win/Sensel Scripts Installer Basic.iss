@@ -12,7 +12,7 @@
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 
-AppId={20B3DD2D-B978-4C16-A6B2-995E69F77450}
+AppId={{20B3DD2D-B978-4C16-A6B2-995E69F77450}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -37,8 +37,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-Source: "..\..\..\Ableton\Sensel_Morph\*"; DestDir: "{userdocs}\Ableton\User Library\Remote Scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\..\Ableton\Project\*"; DestDir: "{userdocs}\Sensel Morph\Ableton Live 11\Project"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\..\Ableton\Overlays\*"; DestDir: "{userdocs}\Sensel Morph\Ableton Live 11\Overlay Maps"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\..\Ableton\Guides\*"; DestDir: "{userdocs}\Sensel Morph\Ableton Live 11\Guides"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\Sensel_Morph\*"; DestDir: "{userdocs}\Ableton\User Library\Remote Scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\Project\*"; DestDir: "{userdocs}\Sensel Morph\Ableton Live 11\Project"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\Overlays\*"; DestDir: "{userdocs}\Sensel Morph\Ableton Live 11\Overlay Maps"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\Guides\*"; DestDir: "{userdocs}\Sensel Morph\Ableton Live 11\Guides"; Flags: ignoreversion recursesubdirs createallsubdirs
 
