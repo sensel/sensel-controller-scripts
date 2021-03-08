@@ -37,7 +37,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-Source: "..\..\Sensel_Morph\*"; DestDir: "{userdocs}\Ableton\User Library\Remote Scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\Sensel_Morph\*"; DestDir: "{userdocs}\Ableton\User Library\Remote Scripts\Sensel_Morph_MPE"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\Project\*"; DestDir: "{userdocs}\Sensel Morph\Ableton Live 11\Project"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\Overlays\*"; DestDir: "{userdocs}\Sensel Morph\Ableton Live 11\Overlay Maps"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\Guides\*"; DestDir: "{userdocs}\Sensel Morph\Ableton Live 11\Guides"; Flags: ignoreversion recursesubdirs createallsubdirs
