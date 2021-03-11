@@ -1,9 +1,10 @@
 // 0718 amounra : http://www.aumhaa.com
+var VERSION = "1.1.4";
 
 loadAPI(7);
 host.setShouldFailOnDeprecatedUse(false);
 
-host.defineController("Sensel", "MorphMPE", "1.1.3", "aa49a7eb-d170-4b07-8a75-257278da7ca8");
+host.defineController("Sensel", "MorphMPE", VERSION, "aa49a7eb-d170-4b07-8a75-257278da7ca8");
 host.defineMidiPorts(1, 1);
 
 if (host.platformIsWindows())
@@ -24,8 +25,8 @@ var script = this;
 var session;
 
 var DEBUG = false;	//post() doesn't work without this
-var VERSION = "1.1.3";
 var VERBOSE = false;
+var MPE_BEND_RANGE = 24;
 
 var CHECK_MAPS =          "F000021D007003014500200000000000000000F7";
 var MAGNET_VALUES_CALL =  "F0 00 02 1D 00 70 03 01 72 02 F7";
@@ -526,7 +527,7 @@ function initialize_noteInput()
 {
 	//noteInput = host.getMidiInPort(0).createNoteInput("Morph", "8?????", "9?????", "D?????", "E?????");
 	noteInput = host.getMidiInPort(0).createNoteInput("Morph", "??????");
-	noteInput.setUseExpressiveMidi(true, 0, 24);
+	noteInput.setUseExpressiveMidi(true, 0, MPE_BEND_RANGE);
 	noteInput.setShouldConsumeEvents(false);
 
 }
@@ -552,7 +553,7 @@ function initialize_production_port()
 	{*/
 		post('creating Production Discrete Port...');
 		productionInput = host.getMidiInPort(0).createNoteInput("Production", "??????");
-		productionInput.setUseExpressiveMidi(true, 0, 24);
+		productionInput.setUseExpressiveMidi(true, 0, MPE_BEND_RANGE);
 		productionInput.setShouldConsumeEvents(false);
 		productionInput.setKeyTranslationTable(ALLOFFMAP);
 	//}
@@ -565,7 +566,7 @@ function initialize_keys_port()
 	{*/
 		post('creating Keys Discrete Port...');
 		keysInput = host.getMidiInPort(0).createNoteInput("Keys", "??????");
-		keysInput.setUseExpressiveMidi(true, 0, 24);
+		keysInput.setUseExpressiveMidi(true, 0, MPE_BEND_RANGE);
 		keysInput.setShouldConsumeEvents(false);
 		keysInput.setKeyTranslationTable(ALLOFFMAP);
 	//}
@@ -578,7 +579,7 @@ function initialize_drum_port()
 	{*/
 		post('creating Drum Discrete Port...');
 		drumInput = host.getMidiInPort(0).createNoteInput("Drum", "??????");
-		drumInput.setUseExpressiveMidi(true, 0, 24);
+		drumInput.setUseExpressiveMidi(true, 0, MPE_BEND_RANGE);
 		drumInput.setShouldConsumeEvents(false);
 		drumInput.setKeyTranslationTable(ALLOFFMAP);
 	//}
@@ -591,7 +592,7 @@ function initialize_thunder_port()
 	{*/
 		post('creating Thunder Discrete Port...');
 		thunderInput = host.getMidiInPort(0).createNoteInput("Thunder", "??????");
-		thunderInput.setUseExpressiveMidi(true, 0, 24);
+		thunderInput.setUseExpressiveMidi(true, 0, MPE_BEND_RANGE);
 		thunderInput.setShouldConsumeEvents(false);
 		thunderInput.setKeyTranslationTable(ALLOFFMAP);
 	//}
@@ -635,6 +636,10 @@ function initialize_settings()
 
 	selectClipSlotOnTrackChange = new Setting('AutoClipSlotSelect', 'enum', {category:'Miscellaneous', options:['on', 'off'], initialValue:'on'});
 	selectClipSlotOnTrackChange.set_callback(update_selected_clipslot_on_selected_track_change);
+
+	mpeBendRange = new Setting('MPEBendRange', 'enum', {category:'Global', options:['24', '48'], initialValue:MPE_BEND_RANGE.toString()});
+	mpeBendRange.set_callback(update_mpeBendRange);
+
 }
 
 function initialize_surface()
@@ -1434,6 +1439,16 @@ function update_main_modes()
 	{
 		MainModes.restore_mode();
 	}
+}
+
+function update_mpeBendRange()
+{
+	MPE_BEND_RANGE = mpeBendRange._value == '24' ? 24 : 48;
+	noteInput.setUseExpressiveMidi(true, 0, MPE_BEND_RANGE);
+	productionInput.setUseExpressiveMidi(true, 0, MPE_BEND_RANGE);
+	keysInput.setUseExpressiveMidi(true, 0, MPE_BEND_RANGE);
+	drumInput.setUseExpressiveMidi(true, 0, MPE_BEND_RANGE);
+	thunderInput.setUseExpressiveMidi(true, 0, MPE_BEND_RANGE);
 }
 
 function morphFlush()
