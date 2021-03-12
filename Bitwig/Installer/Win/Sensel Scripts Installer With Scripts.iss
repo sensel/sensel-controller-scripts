@@ -2,10 +2,10 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Sensel Morph Bitwig Control Scripts"
-#define MyAppVersion "0.8"
+#define MyAppVersion "0.9"
 #define MyAppPublisher "Sensel, Inc."
 #define MyAppURL "http://www.sensel.com/"
-#define MyAppExeName "SenselMorph_BitwigScripts.exe"
+#define MyAppExeName "SenselMorph_Bitwig_With_Scripts.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -39,5 +39,5 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "..\..\..\Bitwig\Project\*"; DestDir: "{userdocs}\Sensel Morph\Bitwig Studio Script Project\"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\..\Bitwig\Overlays\*"; DestDir: "{userdocs}\Sensel Morph\Bitwig Overlay Maps\"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\..\Bitwig\SenselMorph\*"; DestDir: "{userdocs}\Bitwig Studio\Controller Scripts\"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\Bitwig\SenselMorph\*"; DestDir: "{userdocs}\Bitwig Studio\Controller Scripts\SenselMorph_local"; Flags: ignoreversion recursesubdirs createallsubdirs
 [Code]
