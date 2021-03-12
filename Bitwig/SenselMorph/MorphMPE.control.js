@@ -26,7 +26,7 @@ var session;
 
 var DEBUG = false;	//post() doesn't work without this
 var VERBOSE = false;
-var MPE_BEND_RANGE = 24;
+var MPE_BEND_RANGE = 48;
 
 var CHECK_MAPS =          "F000021D007003014500200000000000000000F7";
 var MAGNET_VALUES_CALL =  "F0 00 02 1D 00 70 03 01 72 02 F7";
@@ -637,7 +637,7 @@ function initialize_settings()
 	selectClipSlotOnTrackChange = new Setting('AutoClipSlotSelect', 'enum', {category:'Miscellaneous', options:['on', 'off'], initialValue:'on'});
 	selectClipSlotOnTrackChange.set_callback(update_selected_clipslot_on_selected_track_change);
 
-	mpeBendRange = new Setting('MPEBendRange', 'enum', {category:'Global', options:['24', '48'], initialValue:MPE_BEND_RANGE.toString()});
+	mpeBendRange = new Setting('MPEBendRange', 'enum', {category:'Global', options:['0', '24', '48'], initialValue:MPE_BEND_RANGE.toString()});
 	mpeBendRange.set_callback(update_mpeBendRange);
 
 }
