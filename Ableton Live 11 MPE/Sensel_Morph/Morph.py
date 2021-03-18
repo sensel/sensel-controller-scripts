@@ -74,6 +74,7 @@ PIANO_OVERLAY = tuple([240, 0, 2, 29, 0, 3, 0, 0, 1, 1, 247])
 PRODUCTION_OVERLAY = tuple([240, 0, 2, 29, 0, 4, 0, 0, 1, 1, 247])
 DRUM_OVERLAY = tuple([240, 0, 2, 29, 0, 5, 0, 0, 1, 1, 247])
 THUNDER_OVERLAY = tuple([240, 0, 2, 29, 0, 16, 0, 0, 1, 1, 247])
+INNOVATOR_OVERLAY = tuple([240, 0, 2, 29, 0, 15, 0, 0, 1, 1, 247])
 NO_OVERLAY = tuple([240, 0, 2, 29, 0, 14, 0, 0, 1, 1, 247])
 
 
@@ -114,7 +115,7 @@ class SpecialMultiElement(MultiElement):
 
 	def update_identifier(self):
 		#this is enumerating button_elements, which do not actually contain the identifier etc....I need their linked control (button_control)
-		debug('sending id:', self._name, self._identifier)
+		# debug('sending id:', self._name, self._identifier)
 		if len(self.owned_control_elements()):
 			control = self.owned_control_elements()[0]
 			# debug('control type:', type(control))
@@ -147,7 +148,7 @@ class SpecialMultiElement(MultiElement):
 		#this recieves the button_element
 		# debug('on_nested_control_element_value', 'type:', type(control))
 		# if hasattr(control, '_control_element'):
-		debug('on_nested_control_element_value:', value, control.script_forwarding, control.message_channel(), control.message_identifier())
+		# debug('on_nested_control_element_value:', value, control.script_forwarding, control.message_channel(), control.message_identifier())
 
 
 
@@ -275,7 +276,7 @@ class MorphDrumGroup(DrumGroupComponent, ScrollComponent, Scrollable):
 
 	#gotcha here:  the positional logic is hardcoded to look for 4x4 pads starting at Note36
 	def _set_button_control_properties(self, button):
-		debug('new _set_button_control_properties:', self._translation_channel)
+		# debug('new _set_button_control_properties:', self._translation_channel)
 		# if button and hasattr(button, '_control_element') and button._control_element:
 			# debug('control info:', button._control_element if hasattr(button, '_control_element') else 'no _control_element')
 			# button.identifier = button._control_element.original_identifier() + ((self.position - 8) * 4)
@@ -286,7 +287,7 @@ class MorphDrumGroup(DrumGroupComponent, ScrollComponent, Scrollable):
 			# button._control_element.enabled = True
 		# button.identifier = button.original_identifier() + ((self.position - 8) * 4)
 		# button.enabled = True
-		debug('set_button_control_properties:', type(button), button.original_identifier())
+		# debug('set_button_control_properties:', type(button), button.original_identifier())
 		button.identifier = button.original_identifier() + ((self.position - 9) * 4)
 
 	def _update_note_translations(self):
@@ -302,7 +303,7 @@ class MorphDrumGroup(DrumGroupComponent, ScrollComponent, Scrollable):
 
 	def _on_matrix_pressed(self, button):
 		super(MorphDrumGroup, self)._on_matrix_pressed(button)
-		debug('_on_matrix_pressed', button)
+		# debug('_on_matrix_pressed', button)
 
 	def set_bank_up_button(self, button):
 		self._bank_up_button_value.subject = button
@@ -332,11 +333,10 @@ class MorphDrumGroup(DrumGroupComponent, ScrollComponent, Scrollable):
 
 	@listens('value')
 	def _bank_up_button_value(self, value):
-		debug('_bank_up_button_value:', value)
+		# debug('_bank_up_button_value:', value)
 		debug(self._drum_group_device.view.drum_pads_scroll_position if liveobj_valid(self._drum_group_device) else None)
 		if value:
 			if 0 <= self.position <= 27 and liveobj_valid(self._drum_group_device):
-				debug('here')
 				self._drum_group_device.view.drum_pads_scroll_position = (self.position + 1)
 
 
@@ -346,7 +346,6 @@ class MorphDrumGroup(DrumGroupComponent, ScrollComponent, Scrollable):
 		debug(self._drum_group_device.view.drum_pads_scroll_position if liveobj_valid(self._drum_group_device) else None)
 		if value:
 			if 1 <= self.position <= 28 and liveobj_valid(self._drum_group_device):
-				debug('here')
 				self._drum_group_device.view.drum_pads_scroll_position = (self.position - 1)
 
 
@@ -678,7 +677,7 @@ class Morph(ControlSurface):
 
 	def _setup_modes(self):
 		self._production_modes = ModesComponent(name = 'ProductionModes')
-		self._production_modes.add_mode('Main', [self._mixer, self._mixer._selected_strip.main_layer, self._viewcontrol, self._drum_group, self._drum_group.main_layer, self._keys_group, self._keys_group.main_layer, self._device, self._device_parameters, self._transport, self._assign_crossfader, self._maintestfunc])
+		self._production_modes.add_mode('Main', [self._mixer, self._mixer._selected_strip.main_layer, self._viewcontrol, self._drum_group, self._drum_group.main_layer, self._keys_group, self._keys_group.main_layer, self._device, self._device_parameters, self._transport, self._assign_crossfader])
 		self._production_modes.add_mode('Shift', [self._mixer, self._mixer._selected_strip.shift_layer, self._session, self._session_navigation,  self._drum_group, self._drum_group.nav_layer, self._keys_group, self._keys_group.shift_layer, self._deassign_crossfader, self._recorder, self._translations], behaviour = MomentaryBehaviour())
 		self._production_modes.layer = Layer(Shift_button = self._button[7])
 		self._production_modes.selected_mode = 'Main'
@@ -705,12 +704,20 @@ class Morph(ControlSurface):
 		self._thunder_modes.selected_mode = 'Main'
 		self._thunder_modes.set_enabled(False)
 
+		self._innovator_modes = ModesComponent(name = 'InnovatorModes')
+		self._innovator_modes.add_mode('Main', [self._mixer, self._mixer._selected_strip.main_layer, self._viewcontrol, self._device, self._device_parameters, self._transport, self._assign_crossfader])
+		self._innovator_modes.add_mode('Shift', [self._mixer, self._mixer._selected_strip.shift_layer, self._deassign_crossfader, self._recorder, self._translations], behaviour = MomentaryBehaviour())
+		self._innovator_modes.layer = Layer(Shift_button = self._button[7])
+		self._innovator_modes.selected_mode = 'Main'
+		self._innovator_modes.set_enabled(False)
+
 		self._main_modes = ModesComponent(name = 'MainModes')
 		self._main_modes.add_mode('disabled', self._background)
 		self._main_modes.add_mode('ProductionMode', [self._production_modes])
 		self._main_modes.add_mode('PianoMode', [self._piano_modes])
 		self._main_modes.add_mode('DrumpadMode', [self._drumpad_modes])
 		self._main_modes.add_mode('ThunderMode', [self._thunder_modes])
+		self._main_modes.add_mode('InnovatorMode', [self._innovator_modes])
 
 		self._report_mode.subject = self._main_modes
 		self._main_modes.selected_mode = 'disabled'
@@ -780,6 +787,9 @@ class Morph(ControlSurface):
 			elif midi_bytes == THUNDER_OVERLAY:
 				debug('thunder overlay...')
 				self._main_modes.selected_mode = 'ThunderMode'
+			elif midi_bytes == INNOVATOR_OVERLAY:
+				debug('innovator overlay...')
+				self._main_modes.selected_mode = 'InnovatorMode'
 			elif midi_bytes == NO_OVERLAY:
 				debug('no overlay...')
 				self._main_modes.selected_mode = 'disabled'
