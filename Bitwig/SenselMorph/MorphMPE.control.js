@@ -1317,11 +1317,26 @@ function setup_modes()
 		{
 			if(NOTE_OBJECTS[i].set_translation)
 			{
-				NOTE_OBJECTS[i].set_translation(i);
+				// NOTE_OBJECTS[i].set_translation(i);
+				NOTE_OBJECTS[i].set_translation(i > 12 ? i : -1);
 			}
 		}
+		mixer.set_nav_controls(button[0], button[1]);
+		mixer.selectedstrip()._send[0].set_control(pressure[0]);
+		mixer.selectedstrip()._send[1].set_control(pressure[1]);
+		if(enableUserModeMP._value == 'off'){
+			device.set_parameter_controls(dial);
+		}
+		else{
+			userPage.enter_mode();
+		}
+		transport._stop.set_control(button[5]);
+		transport._play.set_control(button[4]);
+		transport._overdub.set_control(button[6]);
+		transport._crossfader.set_control(slider[1]);
 		innovatorDiscreetPage.enter_mode();
 		innovatorPage.active = true;
+		innovatorPage.set_shift_button(button[7]);
 	}
 	innovatorPage.exit_mode = function()
 	{
@@ -1333,11 +1348,39 @@ function setup_modes()
 				NOTE_OBJECTS[i].set_translation(-1);
 			}
 		}
+		mixer.set_nav_controls();
+		mixer.selectedstrip()._send[0].set_control();
+		mixer.selectedstrip()._send[1].set_control();
+		mixer.selectedstrip()._stop.set_control();
+		device.set_parameter_controls();
+		transport._stop.set_control();
+		transport._play.set_control();
+		transport._record.set_control();
+		session._record_clip.set_control();
+		transport._crossfader.set_control();
+		innovatorPage.set_shift_button();
 		innovatorPage.active = false;
 		post('innovatorPage exited');
 	}
-
-
+	innovatorPage.update_mode = function()
+	{
+		post('innovatorPage updated');
+		if(innovatorPage._shifted)
+		{
+			transport._stop.set_control();
+			mixer.selectedstrip()._send[0].set_control();
+			mixer.selectedstrip()._send[1].set_control();
+			mixer.selectedstrip()._stop.set_control(button[5]);
+			transport._overdub.set_control();
+		}
+		else
+		{
+			transport._record.set_control();
+			transport._stop.set_control();
+			mixer.selectedstrip()._stop.set_control();
+			mainPage.enter_mode();
+		}
+	}
 
 
 	script["MainModes"] = new PageStack(6, "Main Modes");
