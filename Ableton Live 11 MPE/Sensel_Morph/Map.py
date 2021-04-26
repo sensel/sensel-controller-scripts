@@ -27,9 +27,11 @@ class LividRGB:
 	BLUE = MonoColor(7)
 
 
-VERSION = '1.3'
+VERSION = '1.3.1'
 
 CHANNEL = 0
+
+AUTOARM = True
 
 KEY_TRANSLATION_CHANNEL = 2
 

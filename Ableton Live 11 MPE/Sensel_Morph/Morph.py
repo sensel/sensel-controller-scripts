@@ -733,6 +733,8 @@ class Morph(ControlSurface):
 
 
 	def _can_auto_arm_track(self, track):
+		if not AUTOARM:
+			return False
 		routing = track.current_input_routing
 		return routing == 'Ext: All Ins' or routing == 'All Ins' or routing.startswith('Sensel') or routing.startswith('Morph')
 
@@ -792,7 +794,7 @@ class Morph(ControlSurface):
 				self._main_modes.selected_mode = 'InnovatorMode'
 			elif midi_bytes == NO_OVERLAY:
 				debug('no overlay...')
-				self._main_modes.selected_mode = 'disabled'
+				self._main_modes.selected_mode = 'InnovatorMode'
 
 
 #a

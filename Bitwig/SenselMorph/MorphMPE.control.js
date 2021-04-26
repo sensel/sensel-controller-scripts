@@ -28,7 +28,7 @@ var DEBUG = false;	//post() doesn't work without this
 var VERBOSE = false;
 var MPE_BEND_RANGE = 48;
 
-var CHECK_MAPS =          "F000021D007003014500200000000000000000F7";
+var CHECK_MAPS =          "F0 00 02 1D 00 70 03 01 45 00 20 00 00 00 00 00 00 00 00 F7";
 var MAGNET_VALUES_CALL =  "F0 00 02 1D 00 70 03 01 72 02 F7";
 var PIANO_OVERLAY = 			"F0 00 02 1D 00 03 00 00 01 01 F7";
 var PRODUCTION_OVERLAY = 	"F0 00 02 1D 00 04 00 00 01 01 F7";
@@ -1440,7 +1440,7 @@ function onSysex(data)
 	if((data=="f000021d000300000100f7")||(data=="f000021e000300000101f7"))
 	{
 		post('detected no overlay...');
-		MainModes.change_mode(0);
+		MainModes.change_mode(5);
 	}
 	else if(data=="f000021d000400000101f7")
 	{
