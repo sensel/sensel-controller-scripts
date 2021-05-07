@@ -1,5 +1,5 @@
 # by amounra 1018: http://www.aumhaa.com
-# written against Live 10.1.7
+# written against Live 11.0.2, 050621
 
 
 import Live
@@ -244,51 +244,17 @@ class MorphDeviceComponent(DeviceComponent):
 class MorphDrumGroup(DrumGroupComponent, ScrollComponent, Scrollable):
 
 
-	# def __init__(self, base_note=36, *a, **k):
-	# 	self._base_note = base_note
-	# 	(super(DrumGroupComponent, self).__init__)(*a, **k)
-
 	def _create_and_set_pad_translations(self):
-
-		# def create_translation_entry(button):
-		# 	row, col = button.coordinate
-		# 	return (
-		# 	 col, row, button.identifier, button.channel)
-
-		# if self._can_set_pad_translations():
-		# 	debug('setting translations')
-		# 	translations = []
-		# 	for button in self.matrix:
-		# 		# debug('button is:', button._name if hasattr(button, '_name') else 'noName')
-		# 		debug('type:', type(button))
-		# 		# button.channel = self._translation_channel
-		# 		if button and hasattr(button, '_control_element') and button._control_element:
-		# 			button._control_element.identifier = self._button_coordinates_to_pad_index(36, button.coordinate)
-		# 			button._control_element.enabled = True
-		# 			debug(button._control_element._name, 'set enabled true')
-		# 		translations.append(create_translation_entry(button))
-		#
-		# 	self._set_pad_translations(tuple(translations))
-		# else:
-		# 	debug('NOT setting pad translations')
 		self._update_note_translations()
 		self._set_pad_translations(None)
 
 	#gotcha here:  the positional logic is hardcoded to look for 4x4 pads starting at Note36
 	def _set_button_control_properties(self, button):
 		# debug('new _set_button_control_properties:', self._translation_channel)
-		# if button and hasattr(button, '_control_element') and button._control_element:
-			# debug('control info:', button._control_element if hasattr(button, '_control_element') else 'no _control_element')
-			# button.identifier = button._control_element.original_identifier() + ((self.position - 8) * 4)
-			# button.channel = self._translation_channel
-			# debug('setting:', button, button.identifier , button.channel)
-		# if button and hasattr(button, '_control_element') and button._control_element:
-			# button._control_element.identifier = button.original_identifier() + ((self.position - 8) * 4)
-			# button._control_element.enabled = True
-		# button.identifier = button.original_identifier() + ((self.position - 8) * 4)
-		# button.enabled = True
-		# debug('set_button_control_properties:', type(button), button.original_identifier())
-		button.identifier = button.original_identifier() + ((self.position - 9) * 4)
+		if liveobj_valid(self._drum_group_device):
+			button.identifier = button.original_identifier() + ((self.position - 9) * 4)
+		else:
+			button.identifier = button.original_identifier()
 
 	def _update_note_translations(self):
 		debug('update_note_translations')
@@ -394,14 +360,6 @@ class MorphKeysGroup(PlayableComponent, ScrollComponent, Scrollable):
 		return (button.identifier, button.channel)
 
 
-	# def _update_note_translations(self):
-	# 	for button in self.matrix:
-	# 		if self._button_should_be_enabled(button):
-	# 			self._set_button_control_properties(button)
-	# 			button.enabled = True
-	# 		else:
-	# 			button.enabled = False
-
 	def _update_note_translations(self):
 		debug('update_note_translations')
 		for button in self.matrix:
@@ -415,12 +373,6 @@ class MorphKeysGroup(PlayableComponent, ScrollComponent, Scrollable):
 
 	def _set_button_control_properties(self, button):
 		#debug('new _set_button_control_properties:', self._translation_channel)
-		# if button and hasattr(button, '_control_element') and button._control_element:
-		# 	#debug('control info:', button._control_element if hasattr(button, '_control_element') else 'no _control_element')
-		# 	button.identifier = button._control_element.original_identifier() + ((self.position - 5) * 12)
-		# 	# button.channel = self._translation_channel
-		# 	#debug('setting:', button, button.identifier , button.channel)
-
 		button.identifier = button.original_identifier() + ((self.position - 5) * 12)
 
 
@@ -455,7 +407,7 @@ class Morph(ControlSurface):
 			self._setup_translations()
 			self._setup_modes()
 		self.log_message('<<<<<<<<<<<<<<<<<<<<<<<<< Morph '+VERSION+' log opened >>>>>>>>>>>>>>>>>>>>>>>>>')
-		self.show_message('Morph '+VERSION+' Control Surface Loaded')
+		self.show_message('Morph '+VERSION+' Control Surface Loaded, Autoarm is: '+('ON' if AUTOARM else 'OFF'))
 		self.schedule_message(2, self._init_surface)
 		#debug('device:', self._device._get_device())
 
@@ -590,7 +542,7 @@ class Morph(ControlSurface):
 
 
 	def _setup_autoarm(self):
-		self._auto_arm = AutoArmComponent(name='Auto_Arm')
+		self._auto_arm = AutoArmComponent(name='Auto_Arm', is_enabled = AUTOARM)
 		self._auto_arm.can_auto_arm_track = self._can_auto_arm_track
 		self._auto_arm._update_notification = lambda: None
 

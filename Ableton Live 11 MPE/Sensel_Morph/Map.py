@@ -1,5 +1,5 @@
 # by amounra 0118 : http://www.aumhaa.com
-# written against Live 10.1.7
+# written against Live 11.0.2, 050621
 
 
 from ableton.v2.control_surface.elements.color import Color
@@ -27,7 +27,7 @@ class LividRGB:
 	BLUE = MonoColor(7)
 
 
-VERSION = '1.3.1'
+VERSION = '1.3.2'
 
 CHANNEL = 0
 
