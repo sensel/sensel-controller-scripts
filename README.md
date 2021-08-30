@@ -37,6 +37,7 @@ A complete script for Bitwig Studio. Learn more in our [guide](http://guide.sens
 * Overlays - Use the SenselApp to load these maps on the Morph. Modifies MIDI out to work with the Bitwig script. There are MPE and regular MIDI maps in here.
 * SenselMorph - The javascript files used by Bitwig to make the control surface script work.
 * TestScripts - Original, basic scripts.
+* Presets/FXGrid - Grid device for Quadraphonic Panning. Includes an example of using with Modulators to create an automated circle pan in quad. 
 
 ### Manual Install
 The Installer directory in the repo has Mac and Windows Installers. If you need to install manually:
