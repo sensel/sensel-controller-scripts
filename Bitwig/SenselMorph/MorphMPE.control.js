@@ -1437,7 +1437,7 @@ function onSysex(data)
 	//currently disabled because there is no way to query the current overlay from the device
 	//These functions enable mode switching based on Overlay changes in realtime
 
-	if((data=="f000021d000300000100f7")||(data=="f000021e000300000101f7"))
+	if( (data=="f000021d000300000100f7")||(data=="f000021e000300000101f7")||(data=="f000021d000e00000101f7") )
 	{
 		post('detected no overlay...');
 		MainModes.change_mode(5);
